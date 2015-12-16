@@ -11,7 +11,9 @@ namespace indexed {
 
 class Filesystem {
   public:
-    Filesystem(const std::string& buffer_directory, const std::string& buffer_parent=std::string{});
+    Filesystem(const std::string& buffer_directory,
+               const std::string& buffer_parent = std::string{},
+               const double& gigabyte_quota = 2.0);
     ~Filesystem();
 
     bool Delete(const std::string& filename);
