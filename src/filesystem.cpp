@@ -62,6 +62,7 @@ bool Filesystem::Impl::Move(const std::string& filepath_move_from,
 
 Filesystem::Filesystem(const std::string& buffer_directory, const std::string& buffer_parent)
         : impl_{new Impl{buffer_directory, buffer_parent}} {}
+
 Filesystem::~Filesystem() {}
 
 bool Filesystem::Delete(const std::string& filename) {
