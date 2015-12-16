@@ -15,6 +15,7 @@ class Filesystem {
     ~Filesystem();
 
     bool Delete(const std::string& filename);
+    std::string GetFilepath(const std::string& filename) const;
 
   private:
     class Impl;
