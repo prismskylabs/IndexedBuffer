@@ -16,6 +16,7 @@ class Filesystem::Impl {
 
     bool Delete(const std::string& filename);
     std::string GetFilepath(const std::string& filename) const;
+    bool Move(const std::string& filepath_move_from, const std::string& filename_move_to);
 
   private:
     fs::path buffer_path_;
@@ -46,6 +47,16 @@ std::string Filesystem::Impl::GetFilepath(const std::string& filename) const {
     return (buffer_path_ / fs::path{filename}).string();
 }
 
+bool Filesystem::Impl::Move(const std::string& filepath_move_from,
+                            const std::string& filename_move_to) {
+    auto filepath = buffer_path_ / fs::path{filename_move_to};
+    if (!fs::exists(filepath)) {
+        fs::rename(fs::path{filepath_move_from}, filepath);
+        return true;
+    }
+    return false;
+}
+
 
 // Bridge
 
@@ -59,6 +70,10 @@ bool Filesystem::Delete(const std::string& filename) {
 
 std::string Filesystem::GetFilepath(const std::string& filename) const {
     return impl_->GetFilepath(filename);
+}
+
+bool Filesystem::Move(const std::string& filepath_move_from, const std::string& filename_move_to) {
+    return impl_->Move(filepath_move_from, filename_move_to);
 }
 
 } // namespace indexed
