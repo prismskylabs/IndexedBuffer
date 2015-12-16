@@ -27,16 +27,16 @@ Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& b
     if (buffer_directory.empty()) {
         throw FilesystemException{"Cannot initialize indexed Filesystem with an empty buffer path"};
     }
-    buffer_path_ = parent_path / fs::path{buffer_directory};
+    buffer_path_ = parent_path / buffer_directory;
     if (fs::equivalent(buffer_path_, parent_path) ||
-            fs::equivalent(buffer_path_, parent_path / fs::path{".."})) {
+            fs::equivalent(buffer_path_, parent_path / "..")) {
         throw FilesystemException{"Filesystem must be initialized within a valid parent directory"};
     }
     fs::create_directory(buffer_path_);
 }
 
 bool Filesystem::Impl::Delete(const std::string& filename) {
-    auto filepath = buffer_path_ / fs::path{filename};
+    auto filepath = buffer_path_ / filename;
     if (!fs::is_directory(filepath)) {
         return fs::remove(filepath);
     }
@@ -44,14 +44,14 @@ bool Filesystem::Impl::Delete(const std::string& filename) {
 }
 
 std::string Filesystem::Impl::GetFilepath(const std::string& filename) const {
-    return (buffer_path_ / fs::path{filename}).string();
+    return (buffer_path_ / filename).string();
 }
 
 bool Filesystem::Impl::Move(const std::string& filepath_move_from,
                             const std::string& filename_move_to) {
-    auto filepath = buffer_path_ / fs::path{filename_move_to};
+    auto filepath = buffer_path_ / filename_move_to;
     if (fs::exists(filepath_move_from) && !fs::exists(filepath)) {
-        fs::rename(fs::path{filepath_move_from}, filepath);
+        fs::rename(filepath_move_from, filepath);
         return true;
     }
     return false;
