@@ -77,3 +77,44 @@ TEST_F(FilesystemFixture, ConstructParentThrowTest) {
     }
     EXPECT_TRUE(thrown);
 }
+
+TEST_F(FilesystemFixture, DeleteFalseTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    EXPECT_FALSE(fs::exists(buffer_path_ / fs::path{"file"}));
+    EXPECT_FALSE(filesystem.Delete("file"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / fs::path{"file"}));
+}
+
+TEST_F(FilesystemFixture, DeleteFalseNullFileTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    EXPECT_FALSE(filesystem.Delete(""));
+    EXPECT_TRUE(fs::exists(buffer_path_ / fs::path{""}));
+}
+
+TEST_F(FilesystemFixture, DeleteFalseRelativeTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    EXPECT_FALSE(filesystem.Delete(".."));
+    EXPECT_TRUE(fs::exists(buffer_path_ / fs::path{".."}));
+}
+
+TEST_F(FilesystemFixture, DeleteTrueTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    {
+        std::ofstream out_stream{(buffer_path_ / fs::path{"file"}).native()};
+        out_stream << "hello world";
+    }
+    EXPECT_TRUE(fs::exists(buffer_path_ / fs::path{"file"}));
+    EXPECT_TRUE(filesystem.Delete("file"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / fs::path{"file"}));
+}
+
+TEST_F(FilesystemFixture, DeleteTrueRelativeTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    {
+        std::ofstream out_stream{(buffer_path_ / fs::path{"file"}).native()};
+        out_stream << "hello world";
+    }
+    EXPECT_TRUE(fs::exists(buffer_path_ / fs::path{"../prism_indexed_buffer/file"}));
+    EXPECT_TRUE(filesystem.Delete("../prism_indexed_buffer/file"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / fs::path{"../prism_indexed_buffer/file"}));
+}
