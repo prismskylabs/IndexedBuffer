@@ -12,7 +12,8 @@ namespace fs = ::boost::filesystem;
 
 class Filesystem::Impl {
   public:
-    Impl(const std::string& buffer_directory, const std::string& buffer_parent);
+    Impl(const std::string& buffer_directory, const std::string& buffer_parent,
+         const double& gigabyte_quota);
 
     bool Delete(const std::string& filename);
     std::string GetFilepath(const std::string& filename) const;
@@ -20,9 +21,12 @@ class Filesystem::Impl {
 
   private:
     fs::path buffer_path_;
+    double byte_quota_;
 };
 
-Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& buffer_parent) {
+Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& buffer_parent,
+                       const double& gigabyte_quota)
+        : byte_quota_(gigabyte_quota * 1024 * 1024) {
     auto parent_path = buffer_parent.empty() ? fs::temp_directory_path() : fs::path{buffer_parent};
     if (buffer_directory.empty()) {
         throw FilesystemException{"Cannot initialize indexed Filesystem with an empty buffer path"};
@@ -60,8 +64,9 @@ bool Filesystem::Impl::Move(const std::string& filepath_move_from,
 
 // Bridge
 
-Filesystem::Filesystem(const std::string& buffer_directory, const std::string& buffer_parent)
-        : impl_{new Impl{buffer_directory, buffer_parent}} {}
+Filesystem::Filesystem(const std::string& buffer_directory, const std::string& buffer_parent,
+                       const double& gigabyte_quota)
+        : impl_{new Impl{buffer_directory, buffer_parent, gigabyte_quota}} {}
 
 Filesystem::~Filesystem() {}
 
