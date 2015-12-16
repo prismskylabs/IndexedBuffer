@@ -14,6 +14,8 @@ class Filesystem {
     Filesystem(const std::string& buffer_directory, const std::string& buffer_parent=std::string{});
     ~Filesystem();
 
+    bool Delete(const std::string& filename);
+
   private:
     class Impl;
     std::unique_ptr<Impl> impl_;
