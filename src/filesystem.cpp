@@ -15,6 +15,7 @@ class Filesystem::Impl {
     Impl(const std::string& buffer_directory, const std::string& buffer_parent);
 
     bool Delete(const std::string& filename);
+    std::string GetFilepath(const std::string& filename) const;
 
   private:
     fs::path buffer_path_;
@@ -41,6 +42,10 @@ bool Filesystem::Impl::Delete(const std::string& filename) {
     return false;
 }
 
+std::string Filesystem::Impl::GetFilepath(const std::string& filename) const {
+    return (buffer_path_ / fs::path{filename}).string();
+}
+
 
 // Bridge
 
@@ -50,6 +55,10 @@ Filesystem::~Filesystem() {}
 
 bool Filesystem::Delete(const std::string& filename) {
     return impl_->Delete(filename);
+}
+
+std::string Filesystem::GetFilepath(const std::string& filename) const {
+    return impl_->GetFilepath(filename);
 }
 
 } // namespace indexed
