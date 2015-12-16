@@ -136,3 +136,65 @@ TEST_F(FilesystemFixture, GetFilepathCurrentTest) {
     auto path_string = filesystem.GetFilepath(".");
     EXPECT_EQ(fs::path{path_string}, buffer_path_ / fs::path{"."});
 }
+
+TEST_F(FilesystemFixture, MoveFileTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto filepath_move_from = buffer_path_ / fs::path{"file"};
+    auto filepath_move_to = buffer_path_ / fs::path{"file2"};
+    {
+        std::ofstream out_stream{filepath_move_from.native()};
+        out_stream << "hello world";
+    }
+    EXPECT_TRUE(fs::exists(filepath_move_from));
+    EXPECT_FALSE(fs::exists(filepath_move_to));
+    EXPECT_TRUE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_FALSE(fs::exists(filepath_move_from));
+    EXPECT_TRUE(fs::exists(filepath_move_to));
+    {
+        std::ifstream in_stream{filepath_move_to.native()};
+        std::string in;
+        std::getline(in_stream, in);
+        EXPECT_EQ(std::string("hello world"), in);
+    }
+}
+
+TEST_F(FilesystemFixture, MoveFileExistsTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto filepath_move_from = buffer_path_ / fs::path{"file"};
+    auto filepath_move_to = buffer_path_ / fs::path{"file2"};
+    {
+        std::ofstream out_stream{filepath_move_from.native()};
+        out_stream << "hello world";
+    }
+    {
+        std::ofstream out_stream{filepath_move_to.native()};
+        out_stream << "hello world!";
+    }
+    EXPECT_TRUE(fs::exists(filepath_move_from));
+    EXPECT_TRUE(fs::exists(filepath_move_to));
+    EXPECT_FALSE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_TRUE(fs::exists(filepath_move_from));
+    EXPECT_TRUE(fs::exists(filepath_move_to));
+    {
+        std::ifstream in_stream{filepath_move_to.native()};
+        std::string in;
+        std::getline(in_stream, in);
+        EXPECT_EQ(std::string("hello world!"), in);
+    }
+}
+
+TEST_F(FilesystemFixture, MoveFileDirectoryExistsTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto filepath_move_from = buffer_path_ / fs::path{"file"};
+    auto directory = buffer_path_ / fs::path{"file2"};
+    {
+        std::ofstream out_stream{filepath_move_from.native()};
+        out_stream << "hello world";
+    }
+    EXPECT_TRUE(fs::exists(filepath_move_from));
+    fs::create_directory(directory);
+    EXPECT_TRUE(fs::is_directory(directory));
+    EXPECT_FALSE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_TRUE(fs::exists(filepath_move_from));
+    EXPECT_TRUE(fs::is_directory(directory));
+}
