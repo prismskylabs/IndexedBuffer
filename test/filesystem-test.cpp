@@ -118,3 +118,21 @@ TEST_F(FilesystemFixture, DeleteTrueRelativeTest) {
     EXPECT_TRUE(filesystem.Delete("../prism_indexed_buffer/file"));
     EXPECT_FALSE(fs::exists(buffer_path_ / fs::path{"../prism_indexed_buffer/file"}));
 }
+
+TEST_F(FilesystemFixture, GetFilepathTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto path_string = filesystem.GetFilepath("file");
+    EXPECT_EQ(fs::path{path_string}, buffer_path_ / fs::path{"file"});
+}
+
+TEST_F(FilesystemFixture, GetFilepathEmptyTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto path_string = filesystem.GetFilepath("");
+    EXPECT_EQ(fs::path{path_string}, buffer_path_);
+}
+
+TEST_F(FilesystemFixture, GetFilepathCurrentTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto path_string = filesystem.GetFilepath(".");
+    EXPECT_EQ(fs::path{path_string}, buffer_path_ / fs::path{"."});
+}
