@@ -198,3 +198,14 @@ TEST_F(FilesystemFixture, MoveFileDirectoryExistsTest) {
     EXPECT_TRUE(fs::exists(filepath_move_from));
     EXPECT_TRUE(fs::is_directory(directory));
 }
+
+TEST_F(FilesystemFixture, MoveNonexistantFileTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto filepath_move_from = buffer_path_ / fs::path{"file"};
+    auto filepath_move_to = buffer_path_ / fs::path{"file2"};
+    EXPECT_FALSE(fs::exists(filepath_move_from));
+    EXPECT_FALSE(fs::exists(filepath_move_to));
+    EXPECT_FALSE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_FALSE(fs::exists(filepath_move_from));
+    EXPECT_FALSE(fs::exists(filepath_move_to));
+}
