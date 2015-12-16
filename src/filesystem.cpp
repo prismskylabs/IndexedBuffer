@@ -14,6 +14,8 @@ class Filesystem::Impl {
   public:
     Impl(const std::string& buffer_directory, const std::string& buffer_parent);
 
+    bool Delete(const std::string& filename);
+
   private:
     fs::path buffer_path_;
 };
@@ -31,12 +33,24 @@ Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& b
     fs::create_directory(buffer_path_);
 }
 
+bool Filesystem::Impl::Delete(const std::string& filename) {
+    auto filepath = buffer_path_ / fs::path{filename};
+    if (!fs::is_directory(filepath)) {
+        return fs::remove(filepath);
+    }
+    return false;
+}
+
 
 // Bridge
 
 Filesystem::Filesystem(const std::string& buffer_directory, const std::string& buffer_parent)
         : impl_{new Impl{buffer_directory, buffer_parent}} {}
 Filesystem::~Filesystem() {}
+
+bool Filesystem::Delete(const std::string& filename) {
+    return impl_->Delete(filename);
+}
 
 } // namespace indexed
 } // namespace prism
