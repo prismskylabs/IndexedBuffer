@@ -199,7 +199,7 @@ TEST_F(FilesystemFixture, MoveFileDirectoryExistsTest) {
     EXPECT_TRUE(fs::is_directory(directory));
 }
 
-TEST_F(FilesystemFixture, MoveNonexistantFileTest) {
+TEST_F(FilesystemFixture, MoveNonexistentFileTest) {
     prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
     auto filepath_move_from = buffer_path_ / "file";
     auto filepath_move_to = buffer_path_ / "file2";
