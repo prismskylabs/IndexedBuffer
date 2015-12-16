@@ -50,7 +50,7 @@ std::string Filesystem::Impl::GetFilepath(const std::string& filename) const {
 bool Filesystem::Impl::Move(const std::string& filepath_move_from,
                             const std::string& filename_move_to) {
     auto filepath = buffer_path_ / fs::path{filename_move_to};
-    if (!fs::exists(filepath)) {
+    if (fs::exists(filepath_move_from) && !fs::exists(filepath)) {
         fs::rename(fs::path{filepath_move_from}, filepath);
         return true;
     }
