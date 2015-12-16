@@ -16,6 +16,7 @@ class Filesystem {
                const double& gigabyte_quota = 2.0);
     ~Filesystem();
 
+    bool AboveQuota() const;
     bool Delete(const std::string& filename);
     std::string GetFilepath(const std::string& filename) const;
     bool Move(const std::string& filepath_move_from, const std::string& filename_move_to);
