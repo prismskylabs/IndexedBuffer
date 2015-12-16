@@ -15,6 +15,7 @@ class Filesystem::Impl {
     Impl(const std::string& buffer_directory, const std::string& buffer_parent,
          const double& gigabyte_quota);
 
+    bool AboveQuota() const;
     bool Delete(const std::string& filename);
     std::string GetFilepath(const std::string& filename) const;
     bool Move(const std::string& filepath_move_from, const std::string& filename_move_to);
@@ -37,6 +38,21 @@ Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& b
         throw FilesystemException{"Filesystem must be initialized within a valid parent directory"};
     }
     fs::create_directory(buffer_path_);
+}
+
+bool Filesystem::Impl::AboveQuota() const {
+    uintmax_t size = 0;
+    for (fs::recursive_directory_iterator it(buffer_path_);
+         it != fs::recursive_directory_iterator(); ++it) {
+        if (!fs::is_directory(*it)) {
+            size += fs::file_size(*it);
+        }
+    }
+
+    auto fraction_space_available = fs::space(buffer_path_).available /
+                                    static_cast<double>(fs::space(buffer_path_).capacity);
+
+    return size > byte_quota_ || fraction_space_available < 0.1;
 }
 
 bool Filesystem::Impl::Delete(const std::string& filename) {
@@ -69,6 +85,10 @@ Filesystem::Filesystem(const std::string& buffer_directory, const std::string& b
         : impl_{new Impl{buffer_directory, buffer_parent, gigabyte_quota}} {}
 
 Filesystem::~Filesystem() {}
+
+bool Filesystem::AboveQuota() const {
+    return impl_->AboveQuota();
+}
 
 bool Filesystem::Delete(const std::string& filename) {
     return impl_->Delete(filename);
