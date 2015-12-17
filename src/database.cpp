@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <map>
-#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -121,7 +120,6 @@ int Database::Impl::callback(void* response_ptr, int num_values, char** values, 
     auto record = Record();
     for (int i = 0; i < num_values; ++i) {
         if (values[i]) {
-            //std::cout << names[i] << ": " << values[i] << std::endl;
             record[names[i]] = values[i];
         }
     }
