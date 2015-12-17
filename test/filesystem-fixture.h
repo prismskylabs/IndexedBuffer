@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 
-namespace fs = boost::filesystem;
+namespace fs = ::boost::filesystem;
 
 class FilesystemFixture : public ::testing::Test {
   protected:
