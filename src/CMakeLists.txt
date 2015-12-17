@@ -2,6 +2,7 @@ add_library(${INDEXEDBUFFER_LIBRARIES} STATIC
     chrono-snap.cpp
     filesystem.cpp
     ${INDEXEDBUFFER_INCLUDE_DIRS}/indexed/chrono-snap.h
+    ${INDEXEDBUFFER_INCLUDE_DIRS}/indexed/database.h
     ${INDEXEDBUFFER_INCLUDE_DIRS}/indexed/filesystem.h)
 
 target_include_directories(${INDEXEDBUFFER_LIBRARIES} PRIVATE
