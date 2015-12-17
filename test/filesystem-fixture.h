@@ -22,7 +22,7 @@ class FilesystemFixture : public ::testing::Test {
         return std::count_if(begin, end,
                 [] (const fs::directory_entry& f) {
                     return !(fs::is_directory(f.path()) ||
-                             f.path().filename().native().substr(0, 10) == "prism_data");
+                             f.path().filename().native().substr(0, 18) == "prism_indexed_data");
                 });
     }
 
