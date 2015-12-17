@@ -17,7 +17,7 @@ class FilesystemFixture : public ::testing::Test {
         fs::remove_all(buffer_path_);
     }
 
-    int number_of_files_() {
+    int numberOfFiles() {
         fs::directory_iterator begin(buffer_path_), end;
         return std::count_if(begin, end,
                 [] (const fs::directory_entry& f) {
