@@ -19,6 +19,7 @@ class Database::Impl {
 
     void Delete(const std::string& hash);
     std::string GetLowestDeletable();
+    std::string FindHash(const unsigned long long& time_value, const unsigned int& device);
     void Insert(const unsigned long long& time_value, const unsigned int& device,
                 const std::string& hash, const unsigned long long& size, const unsigned int& keep);
     void SetKeep(const unsigned long long& time_value, const unsigned int& device,
@@ -75,6 +76,25 @@ std::string Database::Impl::GetLowestDeletable() {
         }
     }
 
+    return hash;
+}
+
+std::string Database::Impl::FindHash(const unsigned long long& time_value,
+                                     const unsigned int& device) {
+    std::stringstream stream;
+    stream << "SELECT hash FROM "
+           << table_name_
+           << " WHERE time_value=" << time_value
+           << " AND device=" << device
+           << ";";
+    std::string hash;
+    auto response = execute(stream.str());
+    if (!response.empty()) {
+        auto& record = response[0];
+        if (!record.empty()) {
+            hash = record["hash"];
+        }
+    }
     return hash;
 }
 
@@ -189,6 +209,10 @@ void Database::Delete(const std::string& hash) {
 
 std::string Database::GetLowestDeletable() {
     return impl_->GetLowestDeletable();
+}
+
+std::string Database::FindHash(const unsigned long long& time_value, const unsigned int& device) {
+    return impl_->FindHash(time_value, device);
 }
 
 void Database::Insert(const unsigned long long& time_value, const unsigned int& device,
