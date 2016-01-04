@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
-#include <cstdlib>
+#include <cmath>
 
 #include "indexed/chrono-snap.h"
 
@@ -10,7 +10,7 @@ TEST(ChronoSnapTests, DifferenceBetweenLessThanThirtySeconds) {
     auto now = std::chrono::system_clock::now();
     auto snapped = prism::indexed::utility::SnapToMinute(now);
     auto now_seconds = now.time_since_epoch().count() / 6e7;
-    EXPECT_GT(30, abs(snapped - now_seconds));
+    EXPECT_GT(30.0, std::abs(snapped - now_seconds));
 }
 
 TEST(ChronoSnapTests, RoundDownFromAbove) {
