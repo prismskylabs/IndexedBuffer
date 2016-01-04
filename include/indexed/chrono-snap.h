@@ -7,9 +7,7 @@
 namespace prism {
 namespace indexed {
 
-using Minutes = std::chrono::time_point<std::chrono::system_clock, std::chrono::minutes>;
-
-Minutes SnapToMinute(const std::chrono::system_clock::time_point& time_point);
+unsigned long long SnapToMinute(const std::chrono::system_clock::time_point& time_point);
 
 } // namespace indexed
 } // namespace prism
