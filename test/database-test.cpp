@@ -717,3 +717,18 @@ TEST_F(DatabaseFixture, DeletedDBThrowDeleteTest) {
     }
     EXPECT_TRUE(thrown);
 }
+
+TEST_F(DatabaseFixture, DeletedDBThrowSetKeepTest) {
+    prism::indexed::Database database{db_string_};
+    fs::remove(db_path_);
+    EXPECT_FALSE(fs::exists(db_path_));
+    bool thrown = false;
+    try {
+        database.SetKeep(1, 1, 1);
+    } catch (const prism::indexed::DatabaseException& e) {
+        thrown = true;
+        EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
+                  std::string{e.what()});
+    }
+    EXPECT_TRUE(thrown);
+}
