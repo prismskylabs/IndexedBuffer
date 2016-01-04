@@ -10,6 +10,8 @@
 #include "indexed/filesystem.h"
 
 
+namespace fs = ::boost::filesystem;
+
 TEST_F(FilesystemFixture, EmptyFSTest) {
     EXPECT_FALSE(fs::exists(buffer_path_));
 }
