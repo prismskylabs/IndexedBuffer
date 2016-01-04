@@ -245,6 +245,17 @@ TEST_F(DatabaseFixture, DeleteManyTest) {
     }
 }
 
+TEST_F(DatabaseFixture, FindHashEmptyTest) {
+    prism::indexed::Database database{db_string_};
+    EXPECT_TRUE(database.FindHash(1, 1).empty());
+}
+
+TEST_F(DatabaseFixture, FindHashTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "hash", 5, 0);
+    EXPECT_EQ(std::string{"hash"}, database.FindHash(1, 1));
+}
+
 TEST_F(DatabaseFixture, InsertEmptyHashTest) {
     prism::indexed::Database database{db_string_};
     database.Insert(1, 1, "", 5, 0);
@@ -695,6 +706,21 @@ TEST_F(DatabaseFixture, DeletedDBThrowInsertTest) {
     bool thrown = false;
     try {
         database.Insert(1, 1, "hash", 5, 0);
+    } catch (const prism::indexed::DatabaseException& e) {
+        thrown = true;
+        EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
+                  std::string{e.what()});
+    }
+    EXPECT_TRUE(thrown);
+}
+
+TEST_F(DatabaseFixture, DeletedDBThrowFindHashTest) {
+    prism::indexed::Database database{db_string_};
+    fs::remove(db_path_);
+    EXPECT_FALSE(fs::exists(db_path_));
+    bool thrown = false;
+    try {
+        database.FindHash(1, 1);
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
         EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
