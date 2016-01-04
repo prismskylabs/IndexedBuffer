@@ -8,7 +8,7 @@ add_library(${INDEXEDBUFFER_LIBRARIES} STATIC
     ${INDEXEDBUFFER_INCLUDE_DIRS}/indexed/database.h
     ${INDEXEDBUFFER_INCLUDE_DIRS}/indexed/filesystem.h)
 
-target_include_directories(${INDEXEDBUFFER_LIBRARIES} PRIVATE
+include_directories(
     ${INDEXEDBUFFER_INCLUDE_DIRS}
     ${SQLITE_INCLUDE_DIRS}
     ${BOOSTFILESYSTEM_INCLUDE_DIRS})

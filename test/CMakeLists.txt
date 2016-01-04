@@ -1,7 +1,7 @@
 add_executable(buffer-test
     buffer-test.cpp)
 
-target_include_directories(buffer-test PRIVATE
+include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${BOOSTFILESYSTEM_INCLUDE_DIRS}
     ${GTEST_INCLUDE_DIRS}
@@ -16,7 +16,7 @@ add_test(NAME buffer-test COMMAND buffer-test)
 add_executable(database-test
     database-test.cpp)
 
-target_include_directories(database-test PRIVATE
+include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${BOOSTFILESYSTEM_INCLUDE_DIRS}
     ${GTEST_INCLUDE_DIRS}
@@ -32,7 +32,7 @@ add_test(NAME database-test COMMAND database-test)
 add_executable(chrono-snap-test
     chrono-snap-test.cpp)
 
-target_include_directories(chrono-snap-test PRIVATE
+include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTEST_INCLUDE_DIRS}
     ${INDEXEDBUFFER_INCLUDE_DIRS})
@@ -46,7 +46,7 @@ add_test(NAME chrono-snap-test COMMAND chrono-snap-test)
 add_executable(filesystem-test
     filesystem-test.cpp)
 
-target_include_directories(filesystem-test PRIVATE
+include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${BOOSTFILESYSTEM_INCLUDE_DIRS}
     ${GTEST_INCLUDE_DIRS}

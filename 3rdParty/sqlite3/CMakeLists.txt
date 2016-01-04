@@ -5,7 +5,7 @@ add_library(${SQLITE_LIBRARIES} STATIC
     sqlite3.h
     sqlite3.c)
 
-target_include_directories(${SQLITE_LIBRARIES} PRIVATE
+include_directories(
     ${SQLITE_INCLUDE_DIRS})
 
 target_link_libraries(${SQLITE_LIBRARIES}
