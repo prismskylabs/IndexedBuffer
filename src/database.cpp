@@ -21,7 +21,8 @@ class Database::Impl {
     std::string GetLowestDeletable();
     void Insert(const unsigned long long& time_value, const unsigned int& device,
                 const std::string& hash, const unsigned long long& size, const unsigned int& keep);
-    void SetKeep(const std::string& hash, const unsigned int& keep);
+    void SetKeep(const unsigned long long& time_value, const unsigned int& device,
+                 const unsigned int& keep);
 
   private:
     using Record = std::map<std::string, std::string>;
@@ -99,19 +100,16 @@ void Database::Impl::Insert(const unsigned long long& time_value, const unsigned
     execute(stream.str());
 }
 
-void Database::Impl::SetKeep(const std::string& hash, const unsigned int& keep) {
-    if (hash.empty()) {
-        return;
-    }
-
+void Database::Impl::SetKeep(const unsigned long long& time_value, const unsigned int& device,
+                             const unsigned int& keep) {
     std::stringstream stream;
     stream << "UPDATE "
            << table_name_
            << " SET keep="
            << keep
-           << " WHERE hash='"
-           << hash
-           << "';";
+           << " WHERE time_value=" << time_value
+           << " AND device=" << device
+           << ";";
     execute(stream.str());
 }
 
@@ -199,8 +197,9 @@ void Database::Insert(const unsigned long long& time_value, const unsigned int& 
     impl_->Insert(time_value, device, hash, size, keep);
 }
 
-void Database::SetKeep(const std::string& hash, const unsigned int& keep) {
-    impl_->SetKeep(hash, keep);
+void Database::SetKeep(const unsigned long long& time_value, const unsigned int& device,
+                       const unsigned int& keep) {
+    impl_->SetKeep(time_value, device, keep);
 }
 
 } // namespace indexed
