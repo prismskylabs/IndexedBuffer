@@ -1,4 +1,5 @@
 add_library(${INDEXEDBUFFER_LIBRARIES} STATIC
+    buffer.cpp
     chrono-snap.cpp
     database.cpp
     filesystem.cpp
