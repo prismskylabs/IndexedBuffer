@@ -394,7 +394,7 @@ TEST_F(DatabaseFixture, InsertManyTest) {
     }
 }
 
-TEST_F(DatabaseFixture, SetKeepNullTest) {
+TEST_F(DatabaseFixture, SetKeepBadDeviceTest) {
     prism::indexed::Database database{db_string_};
     database.Insert(1, 1, "hash", 5, 0);
     { 
@@ -405,7 +405,7 @@ TEST_F(DatabaseFixture, SetKeepNullTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep("", 1);
+    database.SetKeep(1, 2, 1);
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -422,7 +422,7 @@ TEST_F(DatabaseFixture, SetKeepNullTest) {
     EXPECT_EQ(0, std::stoi(record["keep"]));
 }
 
-TEST_F(DatabaseFixture, SetKeepBadHashTest) {
+TEST_F(DatabaseFixture, SetKeepBadTimeTest) {
     prism::indexed::Database database{db_string_};
     database.Insert(1, 1, "hash", 5, 0);
     { 
@@ -433,7 +433,7 @@ TEST_F(DatabaseFixture, SetKeepBadHashTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep("h", 1);
+    database.SetKeep(2, 1, 1);
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -461,7 +461,7 @@ TEST_F(DatabaseFixture, SetKeepSingleChangeTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep("hash", 1);
+    database.SetKeep(1, 1, 1);
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -489,7 +489,7 @@ TEST_F(DatabaseFixture, SetKeepSingleChangeReverseTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep("hash", 0);
+    database.SetKeep(1, 1, 0);
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -517,7 +517,7 @@ TEST_F(DatabaseFixture, SetKeepSingleNoChangeTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep("hash", 0);
+    database.SetKeep(1, 1, 0);
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -546,8 +546,8 @@ TEST_F(DatabaseFixture, SetKeepCoupleTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(2, response.size());
     }
-    database.SetKeep("hash", 1);
-    database.SetKeep("hashbrowns", 0);
+    database.SetKeep(1, 1, 1);
+    database.SetKeep(3, 1, 0);
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -581,7 +581,7 @@ TEST_F(DatabaseFixture, SetKeepManyTest) {
     auto number_of_records = 100;
     for (int i = 0; i < number_of_records; ++i) {
         database.Insert(i, 1, std::to_string(i * i), i * 2, i);
-        database.SetKeep(std::to_string(i * i), i + 1);
+        database.SetKeep(i, 1, i + 1);
     }
     std::stringstream stream;
     stream << "SELECT * FROM "
