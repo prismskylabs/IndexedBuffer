@@ -1,3 +1,18 @@
+add_executable(buffer-test
+    buffer-test.cpp)
+
+target_include_directories(buffer-test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${BOOSTFILESYSTEM_INCLUDE_DIRS}
+    ${GTEST_INCLUDE_DIRS}
+    ${INDEXEDBUFFER_INCLUDE_DIRS})
+
+target_link_libraries(buffer-test
+    ${GTEST_BOTH_LIBRARIES}
+    ${INDEXEDBUFFER_LIBRARIES})
+
+add_test(NAME buffer-test COMMAND buffer-test)
+
 add_executable(database-test
     database-test.cpp)
 
@@ -5,6 +20,7 @@ target_include_directories(database-test PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${BOOSTFILESYSTEM_INCLUDE_DIRS}
     ${GTEST_INCLUDE_DIRS}
+    ${SQLITE_INCLUDE_DIRS}
     ${INDEXEDBUFFER_INCLUDE_DIRS})
 
 target_link_libraries(database-test
