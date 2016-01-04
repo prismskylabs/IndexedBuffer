@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstdlib>
 
 #include "indexed/chrono-snap.h"
 
@@ -8,17 +9,8 @@
 TEST(ChronoSnapTests, DifferenceBetweenLessThanThirtySeconds) {
     auto now = std::chrono::system_clock::now();
     auto snapped = prism::indexed::SnapToMinute(now);
-    if (snapped > now) {
-        EXPECT_LE(snapped - now, std::chrono::seconds(30));
-    } else {
-        EXPECT_LE(now - snapped, std::chrono::seconds(30));
-    }
-}
-
-TEST(ChronoSnapTests, SnappedToMinuteReturnsSame) {
-    auto now = std::chrono::system_clock::now();
-    auto snapped = prism::indexed::SnapToMinute(now);
-    EXPECT_EQ(snapped, prism::indexed::SnapToMinute(snapped));
+    auto now_seconds = now.time_since_epoch().count() / 6e7;
+    EXPECT_GT(30, abs(snapped - now_seconds));
 }
 
 TEST(ChronoSnapTests, RoundDownFromAbove) {
@@ -26,7 +18,8 @@ TEST(ChronoSnapTests, RoundDownFromAbove) {
     auto milliseconds = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
     auto snapped = std::chrono::system_clock::time_point(
             now - std::chrono::milliseconds(milliseconds.time_since_epoch().count() % 60000));
-    EXPECT_LE(prism::indexed::SnapToMinute(snapped + std::chrono::milliseconds(29999)), now);
+    EXPECT_LE(prism::indexed::SnapToMinute(snapped + std::chrono::milliseconds(29999)),
+              now.time_since_epoch().count() / 6e7);
 }
 
 TEST(ChronoSnapTests, RoundUpFromAbove) {
@@ -34,7 +27,8 @@ TEST(ChronoSnapTests, RoundUpFromAbove) {
     auto milliseconds = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
     auto snapped = std::chrono::system_clock::time_point(
             now - std::chrono::milliseconds(milliseconds.time_since_epoch().count() % 60000));
-    EXPECT_GE(prism::indexed::SnapToMinute(snapped + std::chrono::milliseconds(30000)), now);
+    EXPECT_GE(prism::indexed::SnapToMinute(snapped + std::chrono::milliseconds(30000)),
+              now.time_since_epoch().count() / 6e7);
 }
 
 TEST(ChronoSnapTests, RoundUpFromBelow) {
@@ -43,7 +37,7 @@ TEST(ChronoSnapTests, RoundUpFromBelow) {
     auto snapped = std::chrono::system_clock::time_point(
             now - std::chrono::milliseconds(milliseconds.time_since_epoch().count() % 60000));
     EXPECT_GE(prism::indexed::SnapToMinute(snapped - std::chrono::milliseconds(30000)),
-              now - std::chrono::minutes(1));
+              (now - std::chrono::minutes(1)).time_since_epoch().count() / 6e7);
 }
 
 TEST(ChronoSnapTests, RoundDownFromBelow) {
@@ -52,5 +46,5 @@ TEST(ChronoSnapTests, RoundDownFromBelow) {
     auto snapped = std::chrono::system_clock::time_point(
             now - std::chrono::milliseconds(milliseconds.time_since_epoch().count() % 60000));
     EXPECT_LE(prism::indexed::SnapToMinute(snapped - std::chrono::milliseconds(30001)),
-              now - std::chrono::minutes(1));
+              (now - std::chrono::minutes(1)).time_since_epoch().count() / 6e7);
 }
