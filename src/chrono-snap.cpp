@@ -5,6 +5,7 @@
 
 namespace prism {
 namespace indexed {
+namespace utility {
 
 unsigned long long SnapToMinute(const std::chrono::system_clock::time_point& time_point) {
     auto milliseconds = std::chrono::time_point_cast<std::chrono::milliseconds>(time_point);
@@ -20,5 +21,6 @@ unsigned long long SnapToMinute(const std::chrono::system_clock::time_point& tim
     }
 }
 
+} // namespace utility
 } // namespace indexed
 } // namespace prism

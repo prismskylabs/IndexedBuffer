@@ -6,9 +6,11 @@
 
 namespace prism {
 namespace indexed {
+namespace utility {
 
 unsigned long long SnapToMinute(const std::chrono::system_clock::time_point& time_point);
 
+} // namespace utility
 } // namespace indexed
 } // namespace prism
 
