@@ -53,6 +53,10 @@ TEST_F(BufferFixture, DifferentQuotaTest) {
     prism::indexed::Buffer buffer{std::string{}, 1.0};
 }
 
+TEST_F(BufferFixture, NegativeQuotaTest) {
+    EXPECT_DEATH(prism::indexed::Buffer(std::string{}, -1.0), "");
+}
+
 TEST_F(BufferFixture, FullFalseTest) {
     prism::indexed::Buffer buffer;
     EXPECT_FALSE(buffer.Full());
@@ -81,10 +85,6 @@ TEST_F(BufferFixture, FullPushTrueTest) {
     auto now = std::chrono::system_clock::now();
     buffer.Push(now, 1, filepath_);
     EXPECT_TRUE(buffer.Full());
-}
-
-TEST_F(BufferFixture, NegativeQuotaTest) {
-    EXPECT_DEATH(prism::indexed::Buffer(std::string{}, -1.0), "");
 }
 
 TEST_F(BufferFixture, PushSingleFilesystemCheckTest) {
