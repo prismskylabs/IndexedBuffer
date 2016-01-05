@@ -89,7 +89,13 @@ bool Buffer::Impl::PreserveRecord(const std::chrono::system_clock::time_point& t
 bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device, const std::string& filepath) {
     while (filesystem_.AboveQuota()) {
-        auto hash = database_.GetLowestDeletable();
+        std::string hash;
+        try {
+            auto hash = database_.GetLowestDeletable();
+        } catch (const DatabaseException& e) {
+            return false;
+        }
+
         if (hash.empty()) {
             fs::remove(filepath);
             return false;
