@@ -17,7 +17,7 @@ class BufferFixture : public DatabaseFixture {
         staging_path_ = fs::temp_directory_path() / fs::path{"prism_staging_buffer"};
         fs::create_directory(staging_path_);
         filename_ = "testfile";
-        filepath_ = (staging_path_ / filename_).native();
+        filepath_ = (staging_path_ / filename_).string();
         contents_ = "hello world";
     }
 

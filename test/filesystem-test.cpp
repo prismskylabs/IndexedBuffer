@@ -176,7 +176,7 @@ TEST_F(FilesystemFixture, MoveFileTest) {
     }
     EXPECT_TRUE(fs::exists(filepath_move_from));
     EXPECT_FALSE(fs::exists(filepath_move_to));
-    EXPECT_TRUE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_TRUE(filesystem.Move(filepath_move_from.string(), "file2"));
     EXPECT_FALSE(fs::exists(filepath_move_from));
     EXPECT_TRUE(fs::exists(filepath_move_to));
     {
@@ -201,7 +201,7 @@ TEST_F(FilesystemFixture, MoveFileExistsTest) {
     }
     EXPECT_TRUE(fs::exists(filepath_move_from));
     EXPECT_TRUE(fs::exists(filepath_move_to));
-    EXPECT_FALSE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_FALSE(filesystem.Move(filepath_move_from.string(), "file2"));
     EXPECT_TRUE(fs::exists(filepath_move_from));
     EXPECT_TRUE(fs::exists(filepath_move_to));
     {
@@ -223,7 +223,7 @@ TEST_F(FilesystemFixture, MoveFileDirectoryExistsTest) {
     EXPECT_TRUE(fs::exists(filepath_move_from));
     fs::create_directory(directory);
     EXPECT_TRUE(fs::is_directory(directory));
-    EXPECT_FALSE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_FALSE(filesystem.Move(filepath_move_from.string(), "file2"));
     EXPECT_TRUE(fs::exists(filepath_move_from));
     EXPECT_TRUE(fs::is_directory(directory));
 }
@@ -234,7 +234,7 @@ TEST_F(FilesystemFixture, MoveNonexistentFileTest) {
     auto filepath_move_to = buffer_path_ / "file2";
     EXPECT_FALSE(fs::exists(filepath_move_from));
     EXPECT_FALSE(fs::exists(filepath_move_to));
-    EXPECT_FALSE(filesystem.Move(filepath_move_from.native(), "file2"));
+    EXPECT_FALSE(filesystem.Move(filepath_move_from.string(), "file2"));
     EXPECT_FALSE(fs::exists(filepath_move_from));
     EXPECT_FALSE(fs::exists(filepath_move_to));
 }
