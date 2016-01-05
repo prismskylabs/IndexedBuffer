@@ -47,6 +47,12 @@ if(BUILD_INDEXEDBUFFER_TESTS)
         find_package(GTest)
     endif()
     if(NOT USE_SYSTEM_GTEST AND NOT GTEST_FOUND)
+        if(MSVC)
+            # By default, GTest compiles on Windows in CRT static linkage mode. We use this
+            # variable to force it into using the CRT in dynamic linkage (DLL), just as
+            # IndexedBuffer does.
+            set(gtest_force_shared_crt ON CACHE BOOL "Force gtest to use the shared c runtime")
+        endif()
         add_subdirectory(googletest)
         if(POLICY CMP0026)
             cmake_policy(SET CMP0026 OLD)
