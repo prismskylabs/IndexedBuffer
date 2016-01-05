@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <mutex>
 #include <sstream>
 #include <string>
 
@@ -36,6 +37,7 @@ class Buffer::Impl {
 
     Filesystem filesystem_;
     Database database_;
+    std::mutex mutex_;
 };
 
 Buffer::Impl::Impl(const std::string& buffer_root, const double& gigabyte_quota)
@@ -47,6 +49,7 @@ Buffer::Impl::Impl(const std::string& buffer_root, const double& gigabyte_quota)
 
 bool Buffer::Impl::Delete(const std::chrono::system_clock::time_point& time_point,
                           const unsigned int& device) {
+    std::lock_guard<std::mutex> lock(mutex_);
     std::string hash;
     try {
         hash = database_.FindHash(utility::SnapToMinute(time_point), device);
@@ -69,6 +72,7 @@ bool Buffer::Impl::Delete(const std::chrono::system_clock::time_point& time_poin
 
 std::string Buffer::Impl::GetFilepath(const std::chrono::system_clock::time_point& time_point,
                                       const unsigned int& device) {
+    std::lock_guard<std::mutex> lock(mutex_);
     return filesystem_.GetFilepath(database_.FindHash(utility::SnapToMinute(time_point), device));
 }
 
@@ -78,6 +82,7 @@ bool Buffer::Impl::Full() const {
 
 bool Buffer::Impl::PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                                   const unsigned int& device) {
+    std::lock_guard<std::mutex> lock(mutex_);
     try {
         database_.SetKeep(utility::SnapToMinute(time_point), device, PRESERVE_RECORD);
     } catch (const DatabaseException& e) {
@@ -88,6 +93,7 @@ bool Buffer::Impl::PreserveRecord(const std::chrono::system_clock::time_point& t
 
 bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device, const std::string& filepath) {
+    std::lock_guard<std::mutex> lock(mutex_);
     while (filesystem_.AboveQuota()) {
         std::string hash;
         try {
