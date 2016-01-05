@@ -98,6 +98,14 @@ TEST_F(BufferFixture, DeleteSingleFilesystemCheckTest) {
     EXPECT_EQ(0, numberOfFiles());
 }
 
+TEST_F(BufferFixture, DeleteFailSingleFilesystemCheckTest) {
+    prism::indexed::Buffer buffer;
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_FALSE(buffer.Delete(now, 1));
+    EXPECT_EQ(0, numberOfFiles());
+}
+
 TEST_F(BufferFixture, DeleteSingleDatabaseCheckTest) {
     prism::indexed::Buffer buffer;
     writeStagingFile(filename_, contents_);
@@ -113,6 +121,53 @@ TEST_F(BufferFixture, DeleteSingleDatabaseCheckTest) {
         EXPECT_EQ(1, response.size());
     }
     EXPECT_TRUE(buffer.Delete(now, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
+TEST_F(BufferFixture, DeleteSingleDatabaseCheckAfterFilesystemDeleteTest) {
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    buffer.Push(now, 1, filepath_);
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+    }
+    auto hash = buffer.GetFilepath(now, 1);
+    fs::remove(hash);
+    EXPECT_EQ(0, numberOfFiles());
+    EXPECT_TRUE(buffer.Delete(now, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
+TEST_F(BufferFixture, DeleteFailSingleDatabaseCheckTest) {
+    prism::indexed::Buffer buffer;
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(0, response.size());
+    }
+    EXPECT_FALSE(buffer.Delete(now, 1));
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
