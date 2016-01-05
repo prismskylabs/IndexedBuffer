@@ -47,7 +47,13 @@ Buffer::Impl::Impl(const std::string& buffer_root, const double& gigabyte_quota)
 
 bool Buffer::Impl::Delete(const std::chrono::system_clock::time_point& time_point,
                           const unsigned int& device) {
-    auto hash = database_.FindHash(utility::SnapToMinute(time_point), device);
+    std::string hash;
+    try {
+        hash = database_.FindHash(utility::SnapToMinute(time_point), device);
+    } catch (const DatabaseException& e) {
+        return false;
+    }
+
     if (hash.empty()) {
         return false;
     }
