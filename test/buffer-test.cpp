@@ -45,7 +45,7 @@ TEST_F(BufferFixture, ConstructDifferentRootTest) {
     EXPECT_FALSE(fs::exists(new_root));
     fs::create_directory(new_root);
     EXPECT_TRUE(fs::exists(new_root));
-    prism::indexed::Buffer buffer(new_root.native());
+    prism::indexed::Buffer buffer(new_root.string());
     EXPECT_TRUE(fs::exists(new_root / "prism_indexed_buffer"));
 }
 
