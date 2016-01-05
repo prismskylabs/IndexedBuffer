@@ -48,6 +48,10 @@ Buffer::Impl::Impl(const std::string& buffer_root, const double& gigabyte_quota)
 bool Buffer::Impl::Delete(const std::chrono::system_clock::time_point& time_point,
                           const unsigned int& device) {
     auto hash = database_.FindHash(utility::SnapToMinute(time_point), device);
+    if (hash.empty()) {
+        return false;
+    }
+
     filesystem_.Delete(hash);
     try {
         database_.Delete(hash);
