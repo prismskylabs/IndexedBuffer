@@ -188,6 +188,55 @@ TEST_F(BufferFixture, DeleteFailSingleRemovedDatabaseCheckTest) {
     EXPECT_FALSE(buffer.Delete(now, 1));
 }
 
+TEST_F(BufferFixture, PreserveRecordTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(buffer.PreserveRecord(now, 1));
+}
+
+TEST_F(BufferFixture, PreserveRecordWorksTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_TRUE(buffer.PreserveRecord(now, 1));
+    writeStagingFile(filename_, contents_);
+    EXPECT_FALSE(buffer.Push(now, 2, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(1, response.size());
+    auto& record = response[0];
+    EXPECT_EQ(6, record.size());
+    EXPECT_EQ(1, std::stoi(record["id"]));
+    EXPECT_LE(1, std::stoi(record["time_value"]));
+    EXPECT_EQ(1, std::stoi(record["device"]));
+    EXPECT_FALSE(record["hash"].empty());
+    EXPECT_EQ(PRESERVE_RECORD, std::stoi(record["keep"]));
+}
+
+TEST_F(BufferFixture, PreserveRecordRemovedDatabaseTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    fs::remove(db_path_);
+    EXPECT_FALSE(buffer.PreserveRecord(now, 1));
+}
+
 TEST_F(BufferFixture, PushSingleFilesystemCheckTest) {
     prism::indexed::Buffer buffer;
     writeStagingFile(filename_, contents_);
