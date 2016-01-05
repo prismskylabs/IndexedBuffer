@@ -87,6 +87,40 @@ TEST_F(BufferFixture, FullPushTrueTest) {
     EXPECT_TRUE(buffer.Full());
 }
 
+TEST_F(BufferFixture, DeleteSingleFilesystemCheckTest) {
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    buffer.Push(now, 1, filepath_);
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(buffer.Delete(now, 1));
+    EXPECT_EQ(0, numberOfFiles());
+}
+
+TEST_F(BufferFixture, DeleteSingleDatabaseCheckTest) {
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    buffer.Push(now, 1, filepath_);
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+    }
+    EXPECT_TRUE(buffer.Delete(now, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
 TEST_F(BufferFixture, PushSingleFilesystemCheckTest) {
     prism::indexed::Buffer buffer;
     writeStagingFile(filename_, contents_);
