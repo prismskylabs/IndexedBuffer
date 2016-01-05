@@ -91,7 +91,7 @@ bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
     while (filesystem_.AboveQuota()) {
         std::string hash;
         try {
-            auto hash = database_.GetLowestDeletable();
+            hash = database_.GetLowestDeletable();
         } catch (const DatabaseException& e) {
             return false;
         }
