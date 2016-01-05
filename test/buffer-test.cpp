@@ -63,9 +63,7 @@ TEST_F(BufferFixture, FullFalseTest) {
 }
 
 TEST_F(BufferFixture, FullTrueTest) {
-    {
-        prism::indexed::Buffer buffer; // To create the db so we can get the size
-    }
+    prism::indexed::Database database{db_string_};
     prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
     EXPECT_FALSE(buffer.Full());
     {
@@ -76,9 +74,7 @@ TEST_F(BufferFixture, FullTrueTest) {
 }
 
 TEST_F(BufferFixture, FullPushTrueTest) {
-    {
-        prism::indexed::Buffer buffer; // To create the db so we can get the size
-    }
+    prism::indexed::Database database{db_string_};
     prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
     EXPECT_FALSE(buffer.Full());
     writeStagingFile(filename_, contents_);
