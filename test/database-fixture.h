@@ -19,7 +19,7 @@ class DatabaseFixture : public FilesystemFixture {
         FilesystemFixture::SetUp();
         fs::create_directory(buffer_path_);
         db_path_ = buffer_path_ / "prism_indexed_data.db";
-        db_string_ = db_path_.native();
+        db_string_ = db_path_.string();
         table_name_ = "prism_indexed_data";
     }
 

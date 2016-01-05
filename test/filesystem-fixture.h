@@ -21,7 +21,7 @@ class FilesystemFixture : public ::testing::Test {
         fs::directory_iterator begin(buffer_path_), end;
         return std::count_if(begin, end, [](const fs::directory_entry& f) {
             return !(fs::is_directory(f.path()) ||
-                     f.path().filename().native().substr(0, 18) ==
+                     f.path().filename().string().substr(0, 18) ==
                              std::string{"prism_indexed_data"});
         });
     }
