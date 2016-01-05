@@ -176,6 +176,22 @@ TEST_F(BufferFixture, DeleteFailSingleDatabaseCheckTest) {
     EXPECT_EQ(0, response.size());
 }
 
+TEST_F(BufferFixture, DeleteFailSingleRemovedDatabaseCheckTest) {
+    prism::indexed::Buffer buffer;
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(0, response.size());
+    }
+    fs::remove(db_path_);
+    EXPECT_FALSE(buffer.Delete(now, 1));
+}
+
 TEST_F(BufferFixture, PushSingleFilesystemCheckTest) {
     prism::indexed::Buffer buffer;
     writeStagingFile(filename_, contents_);
