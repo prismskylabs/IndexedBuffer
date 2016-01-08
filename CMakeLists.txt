@@ -50,6 +50,8 @@ _declare_option(USE_SYSTEM_GTEST
     "If ON, this project will look in the system paths for an installed gtest library." OFF)
 _declare_option(USE_SYSTEM_BOOST
     "If ON, this project will look in the system paths for an installed boost distribution." OFF)
+_declare_option(USE_EXISTING_TARGET_BOOST
+    "If ON, this project will use targets that already exist for a boost distribution." OFF)
 _declare_option(BUILD_INDEXEDBUFFER_TESTS
     "If ON, this project will build the unit tests." ON)
 _declare_option(GENERATE_COVERAGE
