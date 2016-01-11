@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #define DELETE_IF_FULL 0U
 #define PRESERVE_RECORD 1000U
@@ -25,6 +26,7 @@ class Database {
     std::string FindHash(const unsigned long long& time_value, const unsigned int& device);
     void Insert(const unsigned long long& time_value, const unsigned int& device,
                 const std::string& hash, const unsigned long long& size, const unsigned int& keep);
+    std::vector<Record> SelectAll();
     void SetKeep(const unsigned long long& time_value, const unsigned int& device,
                  const unsigned int& keep);
 
