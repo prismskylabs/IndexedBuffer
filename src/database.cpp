@@ -21,6 +21,7 @@ class Database::Impl {
     std::string FindHash(const unsigned long long& time_value, const unsigned int& device);
     void Insert(const unsigned long long& time_value, const unsigned int& device,
                 const std::string& hash, const unsigned long long& size, const unsigned int& keep);
+    std::vector<Record> SelectAll();
     void SetKeep(const unsigned long long& time_value, const unsigned int& device,
                  const unsigned int& keep);
 
@@ -116,6 +117,14 @@ void Database::Impl::Insert(const unsigned long long& time_value, const unsigned
            << keep
            << ");";
     execute(stream.str());
+}
+
+std::vector<Record> Database::Impl::SelectAll() {
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << " ORDER BY device ASC, time_value ASC;";
+    return execute(stream.str());
 }
 
 void Database::Impl::SetKeep(const unsigned long long& time_value, const unsigned int& device,
@@ -217,6 +226,10 @@ void Database::Insert(const unsigned long long& time_value, const unsigned int& 
                       const std::string& hash, const unsigned long long& size,
                       const unsigned int& keep) {
     impl_->Insert(time_value, device, hash, size, keep);
+}
+
+std::vector<Record> Database::SelectAll() {
+    return impl_->SelectAll();
 }
 
 void Database::SetKeep(const unsigned long long& time_value, const unsigned int& device,
