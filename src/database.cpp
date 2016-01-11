@@ -1,7 +1,6 @@
 #include "indexed/database.h"
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -26,7 +25,6 @@ class Database::Impl {
                  const unsigned int& keep);
 
   private:
-    using Record = std::map<std::string, std::string>;
     using DatabaseHandle = std::unique_ptr<sqlite3, std::function<int(sqlite3*)>>;
 
     static int callback(void* response_ptr, int num_values, char** values, char** names);
@@ -173,7 +171,7 @@ void Database::Impl::createTable() {
     execute(stream.str());
 }
 
-std::vector<Database::Impl::Record> Database::Impl::execute(const std::string& sql_statement) {
+std::vector<Record> Database::Impl::execute(const std::string& sql_statement) {
     std::vector<Record> response;
     auto sqlite_database = openDatabase();
     char* error;

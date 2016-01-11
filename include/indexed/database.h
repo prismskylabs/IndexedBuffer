@@ -2,6 +2,7 @@
 #define PRISM_INDEXED_DATABASE_H_
 
 #include <exception>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -11,6 +12,8 @@
 
 namespace prism {
 namespace indexed {
+
+using Record = std::map<std::string, std::string>;
 
 class Database {
   public:
