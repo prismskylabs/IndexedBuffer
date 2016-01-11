@@ -405,6 +405,84 @@ TEST_F(DatabaseFixture, InsertManyTest) {
     }
 }
 
+TEST_F(DatabaseFixture, SelectAllTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "hash", 5, 0);
+    auto response = database.SelectAll();
+    EXPECT_EQ(1, response.size());
+    auto& record = response[0];
+    EXPECT_EQ(6, record.size());
+    EXPECT_EQ(1, std::stoi(record["id"]));
+    EXPECT_EQ(1, std::stoi(record["time_value"]));
+    EXPECT_EQ(1, std::stoi(record["device"]));
+    EXPECT_EQ(std::string{"hash"}, record["hash"]);
+    EXPECT_EQ(5, std::stoi(record["size"]));
+    EXPECT_EQ(0, std::stoi(record["keep"]));
+}
+
+TEST_F(DatabaseFixture, SelectAllManyTest) {
+    prism::indexed::Database database{db_string_};
+    auto number_of_records = 100;
+    for (int i = 0; i < number_of_records; ++i) {
+        database.Insert(i, 1, std::to_string(i * i), i * 2, i);
+    }
+    auto response = database.SelectAll();
+    EXPECT_EQ(number_of_records, response.size());
+    for (int i = 0; i < number_of_records; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(i + 1, std::stoi(record["id"]));
+        EXPECT_EQ(i, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_EQ(std::to_string(i * i), record["hash"]);
+        EXPECT_EQ(i * 2, std::stoi(record["size"]));
+        EXPECT_EQ(i, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(DatabaseFixture, SelectAllDeviceAscendingTest) {
+    prism::indexed::Database database{db_string_};
+    auto number_of_records = 100;
+    for (int i = 0; i < number_of_records; ++i) {
+        database.Insert(1, i, std::to_string(i * i), i * 2, i);
+    }
+    auto response = database.SelectAll();
+    EXPECT_EQ(number_of_records, response.size());
+    for (int i = 0; i < number_of_records; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(i + 1, std::stoi(record["id"]));
+        EXPECT_EQ(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(i, std::stoi(record["device"]));
+        EXPECT_EQ(std::to_string(i * i), record["hash"]);
+        EXPECT_EQ(i * 2, std::stoi(record["size"]));
+        EXPECT_EQ(i, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(DatabaseFixture, SelectAllDevicePrecedenceTest) {
+    prism::indexed::Database database{db_string_};
+    auto number_of_records = 10;
+    for (int i = 0; i < number_of_records; ++i) {
+        for (int j = 0; j < number_of_records; ++j) {
+            database.Insert(i, j, std::to_string(i * i), i * 2, i);
+        }
+    }
+    auto response = database.SelectAll();
+    EXPECT_EQ(number_of_records * number_of_records, response.size());
+    for (int j = 0; j < number_of_records; ++j) {
+        for (int i = 0; i < number_of_records; ++i) {
+            auto& record = response[j * number_of_records + i];
+            EXPECT_EQ(6, record.size());
+            EXPECT_EQ(i, std::stoi(record["time_value"]));
+            EXPECT_EQ(j, std::stoi(record["device"]));
+            EXPECT_EQ(std::to_string(i * i), record["hash"]);
+            EXPECT_EQ(i * 2, std::stoi(record["size"]));
+            EXPECT_EQ(i, std::stoi(record["keep"]));
+        }
+    }
+}
+
 TEST_F(DatabaseFixture, SetKeepBadDeviceTest) {
     prism::indexed::Database database{db_string_};
     database.Insert(1, 1, "hash", 5, 0);
