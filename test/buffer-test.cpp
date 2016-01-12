@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <chrono>
+
 #include <boost/filesystem.hpp>
 
 #include "buffer-fixture.h"
@@ -186,6 +188,237 @@ TEST_F(BufferFixture, DeleteFailSingleRemovedDatabaseCheckTest) {
     }
     fs::remove(db_path_);
     EXPECT_FALSE(buffer.Delete(now, 1));
+}
+
+TEST_F(BufferFixture, GetCatalogSingleTest) {
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(1, catalog.size());
+    auto& item_map = catalog[1];
+    EXPECT_EQ(1, item_map.size());
+    for (auto& bucket : item_map) {
+        EXPECT_EQ(1, bucket.second.size());
+        EXPECT_LE(0, bucket.second[0].minute);
+        EXPECT_GT(60, bucket.second[0].minute);
+    }
+}
+
+TEST_F(BufferFixture, GetCatalogEmptyTest) {
+    prism::indexed::Buffer buffer;
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(0, catalog.size());
+}
+
+TEST_F(BufferFixture, GetCatalogRemovedDatabaseTest) {
+    prism::indexed::Buffer buffer;
+    fs::remove(db_path_);
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(0, catalog.size());
+}
+
+TEST_F(BufferFixture, GetCatalogFullHourTest) {
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    auto hour_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count();
+    std::chrono::system_clock::time_point hour{std::chrono::hours(hour_value)};
+
+    for (int i = 0; i < 60; ++i) {
+        std::chrono::system_clock::time_point tp{hour + std::chrono::minutes(i)};
+        writeStagingFile(filename_, contents_);
+        EXPECT_TRUE(buffer.Push(tp, 1, filepath_));
+    }
+
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(1, catalog.size());
+    auto& item_map = catalog[1];
+    EXPECT_EQ(1, item_map.size());
+    for (auto& bucket : item_map) {
+        EXPECT_EQ(60, bucket.second.size());
+        auto last_minute = 0u;
+        for (auto& item : bucket.second) {
+            if (item.minute == 0u) {
+                continue;
+            }
+            EXPECT_LT(last_minute, item.minute);
+            last_minute = item.minute;
+        }
+    }
+}
+
+TEST_F(BufferFixture, GetCatalogTwoFullHourTest) {
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    auto hour_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count();
+    std::chrono::system_clock::time_point hour{std::chrono::hours(hour_value)};
+
+    for (int i = 0; i < 120; ++i) {
+        std::chrono::system_clock::time_point tp{hour + std::chrono::minutes(i)};
+        writeStagingFile(filename_, contents_);
+        EXPECT_TRUE(buffer.Push(tp, 1, filepath_));
+    }
+
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(1, catalog.size());
+    auto& item_map = catalog[1];
+    EXPECT_EQ(2, item_map.size());
+    for (auto& bucket : item_map) {
+        EXPECT_EQ(60, bucket.second.size());
+        auto last_minute = 0u;
+        for (auto& item : bucket.second) {
+            if (item.minute == 0u) {
+                continue;
+            }
+            EXPECT_LT(last_minute, item.minute);
+            last_minute = item.minute;
+        }
+    }
+}
+
+TEST_F(BufferFixture, GetCatalogFullDay) {
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+
+    for (int i = 0; i < 24; ++i) {
+        std::chrono::system_clock::time_point tp{day + std::chrono::hours(i)};
+        writeStagingFile(filename_, contents_);
+        EXPECT_TRUE(buffer.Push(tp, 1, filepath_));
+    }
+
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(1, catalog.size());
+    auto& item_map = catalog[1];
+    EXPECT_EQ(24, item_map.size());
+    for (auto& bucket : item_map) {
+        EXPECT_EQ(1, bucket.second.size());
+        EXPECT_LE(0, bucket.second[0].minute);
+        EXPECT_GT(60, bucket.second[0].minute);
+    }
+}
+
+TEST_F(BufferFixture, GetCatalogMultipleDeviceTest) {
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    writeStagingFile(filename_, contents_);
+    EXPECT_TRUE(buffer.Push(now, 2, filepath_));
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(2, catalog.size());
+    for (auto& item_map : catalog) {
+        EXPECT_EQ(1, item_map.second.size());
+        for (auto& bucket : item_map.second) {
+            EXPECT_EQ(1, bucket.second.size());
+            EXPECT_LE(0, bucket.second[0].minute);
+            EXPECT_GT(60, bucket.second[0].minute);
+        }
+    }
+}
+
+TEST_F(BufferFixture, GetCatalogFullHourMultipleDeviceTest) {
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    auto hour_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count();
+    std::chrono::system_clock::time_point hour{std::chrono::hours(hour_value)};
+
+    for (int i = 0; i < 60; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            std::chrono::system_clock::time_point tp{hour + std::chrono::minutes(i)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, j, filepath_));
+        }
+    }
+
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(10, catalog.size());
+    for (auto& item_map : catalog) {
+        EXPECT_EQ(1, item_map.second.size());
+        for (auto& bucket : item_map.second) {
+            EXPECT_EQ(60, bucket.second.size());
+            auto last_minute = 0u;
+            for (auto& item : bucket.second) {
+                if (item.minute == 0u) {
+                    continue;
+                }
+                EXPECT_LT(last_minute, item.minute);
+                last_minute = item.minute;
+            }
+        }
+    }
+}
+
+TEST_F(BufferFixture, GetCatalogTwoFullHourMultipleDeviceTest) {
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    auto hour_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count();
+    std::chrono::system_clock::time_point hour{std::chrono::hours(hour_value)};
+
+    for (int i = 0; i < 120; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            std::chrono::system_clock::time_point tp{hour + std::chrono::minutes(i)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, j, filepath_));
+        }
+    }
+
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(10, catalog.size());
+    for (auto& item_map : catalog) {
+        EXPECT_EQ(2, item_map.second.size());
+        for (auto& bucket : item_map.second) {
+            EXPECT_EQ(60, bucket.second.size());
+            auto last_minute = 0u;
+            for (auto& item : bucket.second) {
+                if (item.minute == 0u) {
+                    continue;
+                }
+                EXPECT_LT(last_minute, item.minute);
+                last_minute = item.minute;
+            }
+        }
+    }
+}
+
+TEST_F(BufferFixture, GetCatalogCompletelyFullDay) {
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+
+    for (int i = 0; i < 24; ++i) {
+        for (int j = 0; j < 60; ++j) {
+            std::chrono::system_clock::time_point tp{day + std::chrono::hours(i) +
+                                                     std::chrono::minutes(j)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, 1, filepath_));
+        }
+    }
+
+    auto catalog = buffer.GetCatalog();
+    EXPECT_EQ(1, catalog.size());
+    auto& item_map = catalog[1];
+    EXPECT_EQ(24, item_map.size());
+    for (auto& bucket : item_map) {
+        EXPECT_EQ(60, bucket.second.size());
+        auto last_minute = 0u;
+        for (auto& item : bucket.second) {
+            if (item.minute == 0u) {
+                continue;
+            }
+            EXPECT_LT(last_minute, item.minute);
+            last_minute = item.minute;
+        }
+    }
 }
 
 TEST_F(BufferFixture, PreserveRecordTest) {
