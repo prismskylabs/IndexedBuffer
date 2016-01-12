@@ -1,7 +1,9 @@
 #include "indexed/buffer.h"
 
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
+#include <map>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -24,6 +26,7 @@ class Buffer::Impl {
 
     bool Delete(const std::chrono::system_clock::time_point& time_point,
                 const unsigned int& device);
+    std::map<Device, ItemMap> GetCatalog();
     std::string GetFilepath(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device);
     bool Full() const;
@@ -68,6 +71,23 @@ bool Buffer::Impl::Delete(const std::chrono::system_clock::time_point& time_poin
         return false;
     }
     return true;
+}
+
+std::map<Device, ItemMap> Buffer::Impl::GetCatalog() {
+    std::map<Device, ItemMap> catalog;
+    try {
+        auto records = database_.SelectAll();
+        for (auto& record : records) {
+            Device device = std::stoi(record["device"]);
+            auto time_value = std::stoull(record["time_value"]);
+            auto hour_bucket =
+                    std::chrono::system_clock::time_point(std::chrono::hours(time_value / 60));
+            catalog[device][hour_bucket].emplace_back(
+                    Item{static_cast<unsigned int>(time_value % 60)});
+        }
+    } catch (const DatabaseException& e) {
+    }
+    return catalog;
 }
 
 std::string Buffer::Impl::GetFilepath(const std::chrono::system_clock::time_point& time_point,
@@ -163,6 +183,10 @@ Buffer::~Buffer() {}
 bool Buffer::Delete(const std::chrono::system_clock::time_point& time_point,
                     const unsigned int& device) {
     return impl_->Delete(time_point, device);
+}
+
+std::map<Device, ItemMap> Buffer::GetCatalog() {
+    return impl_->GetCatalog();
 }
 
 std::string Buffer::GetFilepath(const std::chrono::system_clock::time_point& time_point,
