@@ -2,12 +2,21 @@
 #define PRISM_INDEXED_BUFFER_H
 
 #include <chrono>
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 
 namespace prism {
 namespace indexed {
+
+struct Item {
+    unsigned int minute;
+};
+
+using ItemMap = std::map<std::chrono::system_clock::time_point, std::vector<Item>>;
+using Device = unsigned int;
 
 class Buffer {
   public:
@@ -18,6 +27,7 @@ class Buffer {
 
     bool Delete(const std::chrono::system_clock::time_point& time_point,
                 const unsigned int& device);
+    std::map<Device, ItemMap> GetCatalog();
     std::string GetFilepath(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device);
     bool Full() const;
