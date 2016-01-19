@@ -71,7 +71,12 @@ bool Filesystem::Impl::Move(const std::string& filepath_move_from,
                             const std::string& filename_move_to) {
     auto filepath = buffer_path_ / filename_move_to;
     if (fs::exists(filepath_move_from) && !fs::exists(filepath)) {
-        fs::rename(filepath_move_from, filepath);
+        try {
+            fs::rename(filepath_move_from, filepath);
+        } catch (const boost::filesystem::filesystem_error& e) {
+            fs::copy_file(filepath_move_from, filepath);
+            fs::remove(filepath_move_from);
+        }
         return true;
     }
     return false;
