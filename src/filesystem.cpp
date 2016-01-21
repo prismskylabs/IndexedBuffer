@@ -27,7 +27,7 @@ class Filesystem::Impl {
 
 Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& buffer_parent,
                        const double& gigabyte_quota)
-        : byte_quota_(gigabyte_quota * 1024 * 1024) {
+        : byte_quota_(gigabyte_quota * 1024 * 1024 * 1024) {
     auto parent_path = buffer_parent.empty() ? fs::temp_directory_path() : fs::path{buffer_parent};
     if (buffer_directory.empty()) {
         throw FilesystemException{"Cannot initialize indexed Filesystem with an empty buffer path"};
