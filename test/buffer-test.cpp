@@ -190,6 +190,12 @@ TEST_F(BufferFixture, DeleteFailSingleRemovedDatabaseCheckTest) {
     EXPECT_FALSE(buffer.Delete(now, 1));
 }
 
+TEST_F(BufferFixture, GetBufferDirectoryTest) {
+    const prism::indexed::Buffer buffer;
+    auto buffer_directory = buffer.GetBufferDirectory();
+    EXPECT_EQ(fs::path{buffer_directory}, buffer_path_);
+}
+
 TEST_F(BufferFixture, GetCatalogSingleTest) {
     prism::indexed::Buffer buffer;
     writeStagingFile(filename_, contents_);
