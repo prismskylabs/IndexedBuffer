@@ -27,6 +27,7 @@ class Buffer {
 
     bool Delete(const std::chrono::system_clock::time_point& time_point,
                 const unsigned int& device);
+    std::string GetBufferDirectory() const;
     std::map<Device, ItemMap> GetCatalog();
     std::string GetFilepath(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device);
