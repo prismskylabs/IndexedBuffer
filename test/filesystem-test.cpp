@@ -148,6 +148,12 @@ TEST_F(FilesystemFixture, DeleteTrueRelativeTest) {
     EXPECT_FALSE(fs::exists(buffer_path_ / "../prism_indexed_buffer/file"));
 }
 
+TEST_F(FilesystemFixture, GetBufferDirectoryTest) {
+    const prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto buffer_directory = filesystem.GetBufferDirectory();
+    EXPECT_EQ(fs::path{buffer_directory}, buffer_path_);
+}
+
 TEST_F(FilesystemFixture, GetFilepathTest) {
     prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
     auto path_string = filesystem.GetFilepath("file");
