@@ -26,6 +26,7 @@ class Buffer::Impl {
 
     bool Delete(const std::chrono::system_clock::time_point& time_point,
                 const unsigned int& device);
+    std::string GetBufferDirectory() const;
     std::map<Device, ItemMap> GetCatalog();
     std::string GetFilepath(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device);
@@ -71,6 +72,10 @@ bool Buffer::Impl::Delete(const std::chrono::system_clock::time_point& time_poin
         return false;
     }
     return true;
+}
+
+std::string Buffer::Impl::GetBufferDirectory() const {
+    return filesystem_.GetBufferDirectory();
 }
 
 std::map<Device, ItemMap> Buffer::Impl::GetCatalog() {
@@ -183,6 +188,10 @@ Buffer::~Buffer() {}
 bool Buffer::Delete(const std::chrono::system_clock::time_point& time_point,
                     const unsigned int& device) {
     return impl_->Delete(time_point, device);
+}
+
+std::string Buffer::GetBufferDirectory() const {
+    return impl_->GetBufferDirectory();
 }
 
 std::map<Device, ItemMap> Buffer::GetCatalog() {
