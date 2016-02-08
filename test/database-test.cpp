@@ -267,6 +267,50 @@ TEST_F(DatabaseFixture, InsertEmptyHashTest) {
     EXPECT_EQ(0, response.size());
 }
 
+TEST_F(DatabaseFixture, InsertBadHashTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, ";DELETE prism_indexed_buffer;", 5, 0);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
+TEST_F(DatabaseFixture, InsertCurrentDirectoryHashTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, ".", 5, 0);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
+TEST_F(DatabaseFixture, InsertPreviousDirectoryHashTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "..", 5, 0);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
+TEST_F(DatabaseFixture, InsertPreviousFileHashTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "../hash", 5, 0);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
 TEST_F(DatabaseFixture, InsertSingleTest) {
     prism::indexed::Database database{db_string_};
     database.Insert(1, 1, "hash", 5, 0);
