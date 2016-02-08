@@ -86,7 +86,7 @@ TEST_F(FilesystemFixture, AboveQuotaFalseTest) {
 }
 
 TEST_F(FilesystemFixture, AboveQuotaTrueTest) {
-    prism::indexed::Filesystem filesystem{"prism_indexed_buffer", std::string{}, 5 / (1024*1024.)};
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer", std::string{}, 5 / (1024 * 1024 * 1024.)};
     EXPECT_FALSE(filesystem.AboveQuota());
     {
         std::ofstream out_stream{(buffer_path_ / "file").native()};
@@ -96,7 +96,7 @@ TEST_F(FilesystemFixture, AboveQuotaTrueTest) {
 }
 
 TEST_F(FilesystemFixture, AboveQuotaNestedTrueTest) {
-    prism::indexed::Filesystem filesystem{"prism_indexed_buffer", std::string{}, 5 / (1024*1024.)};
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer", std::string{}, 5 / (1024 * 1024 * 1024.)};
     EXPECT_FALSE(filesystem.AboveQuota());
     auto directory = buffer_path_ / "nested";
     fs::create_directory(directory);

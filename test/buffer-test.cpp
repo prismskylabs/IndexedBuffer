@@ -66,7 +66,7 @@ TEST_F(BufferFixture, FullFalseTest) {
 
 TEST_F(BufferFixture, FullTrueTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024* 1024.)};
     EXPECT_FALSE(buffer.Full());
     {
         std::ofstream out_stream{(buffer_path_ / "file").native()};
@@ -77,7 +77,7 @@ TEST_F(BufferFixture, FullTrueTest) {
 
 TEST_F(BufferFixture, FullPushTrueTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024* 1024.)};
     EXPECT_FALSE(buffer.Full());
     writeStagingFile(filename_, contents_);
     auto now = std::chrono::system_clock::now();
@@ -429,7 +429,7 @@ TEST_F(BufferFixture, GetCatalogCompletelyFullDay) {
 
 TEST_F(BufferFixture, PreserveRecordTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
@@ -440,7 +440,7 @@ TEST_F(BufferFixture, PreserveRecordTest) {
 
 TEST_F(BufferFixture, PreserveRecordWorksTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
@@ -466,7 +466,7 @@ TEST_F(BufferFixture, PreserveRecordWorksTest) {
 
 TEST_F(BufferFixture, PreserveRecordRemovedDatabaseTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
@@ -527,7 +527,7 @@ TEST_F(BufferFixture, PushNothingDatabaseCheckTest) {
 
 TEST_F(BufferFixture, PushAboveQuotaFilesystemCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
@@ -540,7 +540,7 @@ TEST_F(BufferFixture, PushAboveQuotaFilesystemCheckTest) {
 
 TEST_F(BufferFixture, PushAlreadyAboveQuotaFilesystemCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) - 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) - 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
@@ -550,7 +550,7 @@ TEST_F(BufferFixture, PushAlreadyAboveQuotaFilesystemCheckTest) {
 
 TEST_F(BufferFixture, PushManyAboveQuotaFilesystemCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 40) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 40) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
@@ -572,7 +572,7 @@ TEST_F(BufferFixture, PushManyAboveQuotaFilesystemCheckTest) {
 
 TEST_F(BufferFixture, PushConstantlyAboveQuotaFilesystemCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
@@ -587,7 +587,7 @@ TEST_F(BufferFixture, PushConstantlyAboveQuotaFilesystemCheckTest) {
 
 TEST_F(BufferFixture, PushAboveQuotaDatabaseCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     auto now = std::chrono::system_clock::now();
     EXPECT_TRUE(buffer.Push(now, 1, filepath_));
@@ -603,7 +603,7 @@ TEST_F(BufferFixture, PushAboveQuotaDatabaseCheckTest) {
 
 TEST_F(BufferFixture, PushAlreadyAboveQuotaDatabaseCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) - 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) - 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     auto now = std::chrono::system_clock::now();
     EXPECT_FALSE(buffer.Push(now, 1, filepath_));
@@ -617,7 +617,7 @@ TEST_F(BufferFixture, PushAlreadyAboveQuotaDatabaseCheckTest) {
 
 TEST_F(BufferFixture, PushManyAboveQuotaDatabaseCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 40) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 40) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     auto now = std::chrono::system_clock::now();
     EXPECT_TRUE(buffer.Push(now, 1, filepath_));
@@ -639,7 +639,7 @@ TEST_F(BufferFixture, PushManyAboveQuotaDatabaseCheckTest) {
 
 TEST_F(BufferFixture, PushConstantlyAboveQuotaDatabaseCheckTest) {
     prism::indexed::Database database{db_string_};
-    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024.)};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     auto now = std::chrono::system_clock::now();
     EXPECT_TRUE(buffer.Push(now, 1, filepath_));
