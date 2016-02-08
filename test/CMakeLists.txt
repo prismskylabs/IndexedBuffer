@@ -39,7 +39,7 @@ include_directories(
 
 target_link_libraries(chrono-snap-test
     ${GTEST_BOTH_LIBRARIES}
-    ${INDEXEDBUFFER_LIBRARIES})
+    ${BOOSTFILESYSTEM_LIBRARIES})
 
 add_test(NAME chrono-snap-test COMMAND chrono-snap-test)
 
