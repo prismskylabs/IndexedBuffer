@@ -6,11 +6,14 @@
 #include <string>
 #include <vector>
 
+#include <boost/filesystem.hpp>
 #include <sqlite3.h>
 
 
 namespace prism {
 namespace indexed {
+
+namespace fs = ::boost::filesystem;
 
 class Database::Impl {
   public:
@@ -101,6 +104,10 @@ void Database::Impl::Insert(const unsigned long long& time_value, const unsigned
                             const std::string& hash, const unsigned long long& size,
                             const unsigned int& keep) {
     if (hash.empty()) {
+        return;
+    }
+
+    if (!fs::portable_file_name(hash)) {
         return;
     }
 
