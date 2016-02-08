@@ -75,6 +75,12 @@ TEST_F(BufferFixture, FullTrueTest) {
     EXPECT_TRUE(buffer.Full());
 }
 
+TEST_F(BufferFixture, InitialFullTrueTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) - 5) / (1024 * 1024* 1024.)};
+    EXPECT_TRUE(buffer.Full());
+}
+
 TEST_F(BufferFixture, FullPushTrueTest) {
     prism::indexed::Database database{db_string_};
     prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024* 1024.)};
