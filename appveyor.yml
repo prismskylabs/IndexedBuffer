@@ -10,6 +10,7 @@ before_build:
     - cmake .. -G "Visual Studio 14 2015"
 build:
     project: C:\projects\IndexedBuffer\build\IndexedBuffer.sln
+    verbosity: detailed
 test_script:
     - cd C:\projects\IndexedBuffer\build
     - ctest -VV -C %Configuration%
