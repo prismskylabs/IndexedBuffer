@@ -3,6 +3,8 @@
 #include <chrono>
 #include <cmath>
 
+#include <boost/filesystem.hpp>
+
 #include "indexed/chrono-snap.h"
 
 
