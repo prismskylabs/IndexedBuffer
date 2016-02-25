@@ -143,7 +143,11 @@ void Database::Impl::SetKeep(const unsigned long long& time_value, const unsigne
            << keep
            << " WHERE time_value=" << time_value
            << " AND device=" << device
-           << ";";
+           << "; SELECT * FROM "
+           << table_name_
+           << " WHERE time_value=" << time_value
+           << " AND device=" << device
+           << " LIMIT 1;";
     execute(stream.str());
 }
 
