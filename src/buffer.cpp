@@ -109,14 +109,8 @@ bool Buffer::Impl::Full() const {
 
 bool Buffer::Impl::PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                                   const unsigned int& device) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    try {
-        database_.SetKeep(utility::SnapToMinute(time_point), device, PRESERVE_RECORD);
-    } catch (const DatabaseException& e) {
-        return false;
-    }
-    return true;
-}
+    return setKeep(time_point, device, PRESERVE_RECORD);
+} 
 
 bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device, const std::string& filepath) {
