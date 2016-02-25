@@ -39,9 +39,9 @@ class Buffer::Impl {
                         const unsigned int& device);
     bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
               const std::string& filepath);
+    static std::string MakeHash();
 
   private:
-    std::string makeHash() const;
     bool setKeep(const std::chrono::system_clock::time_point& time_point,
                  const unsigned int& device, const unsigned int& keep);
 
@@ -175,7 +175,7 @@ bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
     return true;
 }
 
-std::string Buffer::Impl::makeHash() const {
+std::string Buffer::Impl::MakeHash() {
     static const char alphanum[] =
             "0123456789"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
