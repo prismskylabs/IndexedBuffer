@@ -23,7 +23,8 @@ namespace fs = ::boost::filesystem;
 
 class Buffer::Impl {
   public:
-    Impl(const std::string& buffer_root, const double& gigabyte_quota);
+    Impl(const std::string& buffer_root, const double& gigabyte_quota,
+         std::function<std::string(void)> hash_function);
 
     bool Delete(const std::chrono::system_clock::time_point& time_point,
                 const unsigned int& device);
@@ -52,9 +53,11 @@ class Buffer::Impl {
     std::function<std::string(void)> hash_function_;
 };
 
-Buffer::Impl::Impl(const std::string& buffer_root, const double& gigabyte_quota)
+Buffer::Impl::Impl(const std::string& buffer_root, const double& gigabyte_quota,
+                   std::function<std::string(void)> hash_function)
         : filesystem_{"prism_indexed_buffer", buffer_root, gigabyte_quota},
-          database_{filesystem_.GetFilepath("prism_indexed_data.db")} {
+          database_{filesystem_.GetFilepath("prism_indexed_data.db")},
+          hash_function_{hash_function} {
     assert(gigabyte_quota > 0);
     srand(std::chrono::system_clock::now().time_since_epoch().count());
 }
@@ -209,7 +212,11 @@ Buffer::Buffer() : Buffer(std::string{}, 2.0) {}
 Buffer::Buffer(const std::string& buffer_root) : Buffer(buffer_root, 2.0) {}
 
 Buffer::Buffer(const std::string& buffer_root, const double& gigabyte_quota)
-        : impl_{new Impl{buffer_root, gigabyte_quota}} {}
+        : Buffer(buffer_root, gigabyte_quota, Buffer::Impl::MakeHash) {}
+
+Buffer::Buffer(const std::string& buffer_root, const double& gigabyte_quota,
+               std::function<std::string(void)> hash_function)
+        : impl_{new Impl{buffer_root, gigabyte_quota, hash_function}} {}
 
 Buffer::~Buffer() {}
 
