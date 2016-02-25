@@ -148,7 +148,8 @@ void Database::Impl::SetKeep(const unsigned long long& time_value, const unsigne
            << " WHERE time_value=" << time_value
            << " AND device=" << device
            << " LIMIT 1;";
-    execute(stream.str());
+
+    return !execute(stream.str()).empty();
 }
 
 int Database::Impl::callback(void* response_ptr, int num_values, char** values, char** names) {
