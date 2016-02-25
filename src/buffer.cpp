@@ -37,7 +37,7 @@ class Buffer::Impl {
               const std::string& filepath);
 
   private:
-    static std::string makeHash(const int& len = 32);
+    std::string makeHash(const int& len = 32) const;
 
     Filesystem filesystem_;
     Database database_;
@@ -159,7 +159,7 @@ bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
     return true;
 }
 
-std::string Buffer::Impl::makeHash(const int& len) {
+std::string Buffer::Impl::makeHash(const int& len) const {
     static const char alphanum[] =
             "0123456789"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
