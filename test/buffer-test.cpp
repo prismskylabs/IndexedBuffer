@@ -482,6 +482,136 @@ TEST_F(BufferFixture, PreserveRecordRemovedDatabaseTest) {
     EXPECT_FALSE(buffer.PreserveRecord(now, 1));
 }
 
+TEST_F(BufferFixture, SetDefaultPriorityTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(buffer.SetDefaultPriority(now, 1));
+}
+
+TEST_F(BufferFixture, SetDefaultPriorityWorksTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_TRUE(buffer.SetDefaultPriority(now, 1));
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(DELETE_IF_FULL, std::stoi(record["keep"]));
+    }
+    writeStagingFile(filename_, contents_);
+    EXPECT_TRUE(buffer.Push(now, 2, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(2, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(2, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+    }
+}
+
+TEST_F(BufferFixture, SetDefaultPriorityRemovedDatabaseTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    fs::remove(db_path_);
+    EXPECT_FALSE(buffer.SetDefaultPriority(now, 1));
+}
+
+TEST_F(BufferFixture, KeepIfPossibleTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(buffer.KeepIfPossible(now, 1));
+}
+
+TEST_F(BufferFixture, KeepIfPossibleWorksTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_TRUE(buffer.KeepIfPossible(now, 1));
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(ATTEMPT_KEEP, std::stoi(record["keep"]));
+    }
+    writeStagingFile(filename_, contents_);
+    EXPECT_TRUE(buffer.Push(now, 2, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(2, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(2, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+    }
+}
+
+TEST_F(BufferFixture, KeepIfPossibleRemovedDatabaseTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    fs::remove(db_path_);
+    EXPECT_FALSE(buffer.KeepIfPossible(now, 1));
+}
+
 TEST_F(BufferFixture, PushSingleFilesystemCheckTest) {
     prism::indexed::Buffer buffer;
     writeStagingFile(filename_, contents_);
