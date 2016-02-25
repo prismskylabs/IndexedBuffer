@@ -33,12 +33,12 @@ class Buffer::Impl {
     bool Full() const;
     bool PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
-    bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
-              const std::string& filepath);
     bool SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device);
     bool KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
+    bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
+              const std::string& filepath);
 
   private:
     std::string makeHash(const int& len = 32) const;
@@ -122,6 +122,16 @@ bool Buffer::Impl::PreserveRecord(const std::chrono::system_clock::time_point& t
     return setKeep(time_point, device, PRESERVE_RECORD);
 } 
 
+bool Buffer::Impl::SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
+                                      const unsigned int& device) {
+    return setKeep(time_point, device, DELETE_IF_FULL);
+}
+
+bool Buffer::Impl::KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
+                                  const unsigned int& device) {
+    return setKeep(time_point, device, ATTEMPT_KEEP);
+}
+
 bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device, const std::string& filepath) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -163,16 +173,6 @@ bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
         fs::remove(filepath);
     }
     return true;
-}
-
-bool Buffer::Impl::SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
-                                      const unsigned int& device) {
-    return setKeep(time_point, device, DELETE_IF_FULL);
-}
-
-bool Buffer::Impl::KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
-                                  const unsigned int& device) {
-    return setKeep(time_point, device, ATTEMPT_KEEP);
 }
 
 std::string Buffer::Impl::makeHash(const int& len) const {
@@ -238,11 +238,6 @@ bool Buffer::PreserveRecord(const std::chrono::system_clock::time_point& time_po
     return impl_->PreserveRecord(time_point, device);
 }
 
-bool Buffer::Push(const std::chrono::system_clock::time_point& time_point,
-                  const unsigned int& device, const std::string& filepath) {
-    return impl_->Push(time_point, device, filepath);
-}
-
 bool Buffer::SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
                                 const unsigned int& device) {
     return impl_->SetDefaultPriority(time_point, device);
@@ -251,6 +246,11 @@ bool Buffer::SetDefaultPriority(const std::chrono::system_clock::time_point& tim
 bool Buffer::KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device) {
     return impl_->KeepIfPossible(time_point, device);
+}
+
+bool Buffer::Push(const std::chrono::system_clock::time_point& time_point,
+                  const unsigned int& device, const std::string& filepath) {
+    return impl_->Push(time_point, device, filepath);
 }
 
 } // namespace indexed
