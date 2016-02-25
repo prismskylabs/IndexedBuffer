@@ -538,7 +538,7 @@ TEST_F(DatabaseFixture, SetKeepBadDeviceTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep(1, 2, 1);
+    EXPECT_FALSE(database.SetKeep(1, 2, 1));
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -566,7 +566,7 @@ TEST_F(DatabaseFixture, SetKeepBadTimeTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep(2, 1, 1);
+    EXPECT_FALSE(database.SetKeep(2, 1, 1));
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -594,7 +594,7 @@ TEST_F(DatabaseFixture, SetKeepSingleChangeTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep(1, 1, 1);
+    EXPECT_TRUE(database.SetKeep(1, 1, 1));
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -622,7 +622,7 @@ TEST_F(DatabaseFixture, SetKeepSingleChangeReverseTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep(1, 1, 0);
+    EXPECT_TRUE(database.SetKeep(1, 1, 0));
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -650,7 +650,7 @@ TEST_F(DatabaseFixture, SetKeepSingleNoChangeTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(1, response.size());
     }
-    database.SetKeep(1, 1, 0);
+    EXPECT_TRUE(database.SetKeep(1, 1, 0));
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -679,8 +679,8 @@ TEST_F(DatabaseFixture, SetKeepCoupleTest) {
         auto response = execute(stream.str());
         EXPECT_EQ(2, response.size());
     }
-    database.SetKeep(1, 1, 1);
-    database.SetKeep(3, 1, 0);
+    EXPECT_TRUE(database.SetKeep(1, 1, 1));
+    EXPECT_TRUE(database.SetKeep(3, 1, 0));
     std::stringstream stream;
     stream << "SELECT * FROM "
            << table_name_
@@ -714,7 +714,7 @@ TEST_F(DatabaseFixture, SetKeepManyTest) {
     auto number_of_records = 100;
     for (int i = 0; i < number_of_records; ++i) {
         database.Insert(i, 1, std::to_string(i * i), i * 2, i);
-        database.SetKeep(i, 1, i + 1);
+        EXPECT_TRUE(database.SetKeep(i, 1, i + 1));
     }
     std::stringstream stream;
     stream << "SELECT * FROM "
@@ -872,7 +872,7 @@ TEST_F(DatabaseFixture, DeletedDBThrowSetKeepTest) {
     EXPECT_FALSE(fs::exists(db_path_));
     bool thrown = false;
     try {
-        database.SetKeep(1, 1, 1);
+        EXPECT_TRUE(database.SetKeep(1, 1, 1));
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
         EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
