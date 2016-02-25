@@ -35,6 +35,10 @@ class Buffer::Impl {
                         const unsigned int& device);
     bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
               const std::string& filepath);
+    bool SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
+                            const unsigned int& device);
+    bool KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
+                        const unsigned int& device);
 
   private:
     std::string makeHash(const int& len = 32) const;
@@ -155,6 +159,16 @@ bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
     return true;
 }
 
+bool Buffer::Impl::SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
+                                      const unsigned int& device) {
+    return setKeep(time_point, device, DELETE_IF_FULL);
+}
+
+bool Buffer::Impl::KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
+                                  const unsigned int& device) {
+    return setKeep(time_point, device, ATTEMPT_KEEP);
+}
+
 std::string Buffer::Impl::makeHash(const int& len) const {
     static const char alphanum[] =
             "0123456789"
@@ -221,6 +235,16 @@ bool Buffer::PreserveRecord(const std::chrono::system_clock::time_point& time_po
 bool Buffer::Push(const std::chrono::system_clock::time_point& time_point,
                   const unsigned int& device, const std::string& filepath) {
     return impl_->Push(time_point, device, filepath);
+}
+
+bool Buffer::SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
+                                const unsigned int& device) {
+    return impl_->SetDefaultPriority(time_point, device);
+}
+
+bool Buffer::KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
+                            const unsigned int& device) {
+    return impl_->KeepIfPossible(time_point, device);
 }
 
 } // namespace indexed

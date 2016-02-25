@@ -36,6 +36,10 @@ class Buffer {
                         const unsigned int& device);
     bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
               const std::string& filepath);
+    bool SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
+                            const unsigned int& device);
+    bool KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
+                        const unsigned int& device);
 
   private:
     class Impl;
