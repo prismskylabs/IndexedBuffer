@@ -104,7 +104,13 @@ std::map<Device, ItemMap> Buffer::Impl::GetCatalog() {
 std::string Buffer::Impl::GetFilepath(const std::chrono::system_clock::time_point& time_point,
                                       const unsigned int& device) {
     std::lock_guard<std::mutex> lock(mutex_);
-    return filesystem_.GetFilepath(database_.FindHash(utility::SnapToMinute(time_point), device));
+
+    const auto hash = database_.FindHash(utility::SnapToMinute(time_point), device);
+    if (hash.empty()) {
+        return hash;
+    }
+
+    return filesystem_.GetFilepath(hash);
 }
 
 bool Buffer::Impl::Full() const {
