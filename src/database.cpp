@@ -25,7 +25,7 @@ class Database::Impl {
     void Insert(const unsigned long long& time_value, const unsigned int& device,
                 const std::string& hash, const unsigned long long& size, const unsigned int& keep);
     std::vector<Record> SelectAll();
-    void SetKeep(const unsigned long long& time_value, const unsigned int& device,
+    bool SetKeep(const unsigned long long& time_value, const unsigned int& device,
                  const unsigned int& keep);
 
   private:
@@ -134,7 +134,7 @@ std::vector<Record> Database::Impl::SelectAll() {
     return execute(stream.str());
 }
 
-void Database::Impl::SetKeep(const unsigned long long& time_value, const unsigned int& device,
+bool Database::Impl::SetKeep(const unsigned long long& time_value, const unsigned int& device,
                              const unsigned int& keep) {
     std::stringstream stream;
     stream << "UPDATE "
@@ -244,9 +244,9 @@ std::vector<Record> Database::SelectAll() {
     return impl_->SelectAll();
 }
 
-void Database::SetKeep(const unsigned long long& time_value, const unsigned int& device,
+bool Database::SetKeep(const unsigned long long& time_value, const unsigned int& device,
                        const unsigned int& keep) {
-    impl_->SetKeep(time_value, device, keep);
+    return impl_->SetKeep(time_value, device, keep);
 }
 
 } // namespace indexed
