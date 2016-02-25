@@ -2,6 +2,7 @@
 #define PRISM_INDEXED_BUFFER_H
 
 #include <chrono>
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -23,6 +24,8 @@ class Buffer {
     Buffer();
     Buffer(const std::string& buffer_root);
     Buffer(const std::string& buffer_root, const double& gigabyte_quota);
+    Buffer(const std::string& buffer_root, const double& gigabyte_quota,
+           std::function<std::string(void)> hash_function);
     ~Buffer();
 
     bool Delete(const std::chrono::system_clock::time_point& time_point,
