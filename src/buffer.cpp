@@ -38,6 +38,8 @@ class Buffer::Impl {
 
   private:
     std::string makeHash(const int& len = 32) const;
+    bool setKeep(const std::chrono::system_clock::time_point& time_point,
+                 const unsigned int& device, const unsigned int& keep);
 
     Filesystem filesystem_;
     Database database_;
@@ -173,6 +175,16 @@ std::string Buffer::Impl::makeHash(const int& len) const {
     return stream.str();
 }
 
+bool Buffer::Impl::setKeep(const std::chrono::system_clock::time_point& time_point,
+                           const unsigned int& device, const unsigned int& keep) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    try {
+        return database_.SetKeep(utility::SnapToMinute(time_point), device, keep);
+    } catch (const DatabaseException& e) {
+        return false;
+    }
+    return false;
+}
 
 // Bridge
 
