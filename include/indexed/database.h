@@ -8,6 +8,7 @@
 #include <vector>
 
 #define DELETE_IF_FULL 0U
+#define ATTEMPT_KEEP 10U
 #define PRESERVE_RECORD 1000U
 
 
