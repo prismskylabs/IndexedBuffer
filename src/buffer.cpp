@@ -3,6 +3,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
+#include <functional>
 #include <map>
 #include <mutex>
 #include <sstream>
@@ -48,6 +49,7 @@ class Buffer::Impl {
     Filesystem filesystem_;
     Database database_;
     std::mutex mutex_;
+    std::function<std::string(void)> hash_function_;
 };
 
 Buffer::Impl::Impl(const std::string& buffer_root, const double& gigabyte_quota)
@@ -161,7 +163,7 @@ bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
     }
 
     auto size = fs::file_size(filepath);
-    auto hash = makeHash();
+    auto hash = hash_function_();
 
     if (filesystem_.Move(filepath, hash)) {
         try {
