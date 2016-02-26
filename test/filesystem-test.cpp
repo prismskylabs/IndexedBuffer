@@ -148,6 +148,37 @@ TEST_F(FilesystemFixture, DeleteTrueRelativeTest) {
     EXPECT_FALSE(fs::exists(buffer_path_ / "../prism_indexed_buffer/file"));
 }
 
+TEST_F(FilesystemFixture, DeleteRecursiveTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto directory = buffer_path_ / "nested";
+    fs::create_directory(directory);
+    {
+        std::ofstream out_stream{(directory / "file").native()};
+        out_stream << "hello world";
+    }
+    EXPECT_TRUE(fs::exists(buffer_path_ / "nested/file"));
+    EXPECT_TRUE(filesystem.Delete("nested/file"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / "nested/file"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / "nested"));
+    EXPECT_TRUE(fs::exists(buffer_path_));
+}
+
+TEST_F(FilesystemFixture, DeleteDeeperRecursiveTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto directory = buffer_path_ / "nested" / "deeper";
+    fs::create_directories(directory);
+    {
+        std::ofstream out_stream{(directory / "file").native()};
+        out_stream << "hello world";
+    }
+    EXPECT_TRUE(fs::exists(buffer_path_ / "nested/deeper/file"));
+    EXPECT_TRUE(filesystem.Delete("nested/deeper/file"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / "nested/deeper/file"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / "nested/deeper"));
+    EXPECT_FALSE(fs::exists(buffer_path_ / "nested"));
+    EXPECT_TRUE(fs::exists(buffer_path_));
+}
+
 TEST_F(FilesystemFixture, GetBufferDirectoryTest) {
     const prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
     auto buffer_directory = filesystem.GetBufferDirectory();
