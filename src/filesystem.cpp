@@ -59,10 +59,21 @@ bool Filesystem::Impl::AboveQuota() const {
 
 bool Filesystem::Impl::Delete(const std::string& filename) {
     auto filepath = buffer_path_ / filename;
-    if (!fs::is_directory(filepath)) {
-        return fs::remove(filepath);
+
+    if (fs::is_directory(filepath)) {
+        return false;
     }
-    return false;
+
+    auto success = fs::remove(filepath);
+
+    auto parent_directory = fs::canonical(filepath.parent_path());
+    const auto canonical_buffer_path = fs::canonical(buffer_path_);
+    while (fs::is_empty(parent_directory) && parent_directory > canonical_buffer_path) {
+        fs::remove(parent_directory);
+        parent_directory = fs::canonical(parent_directory.parent_path());
+    }
+
+    return success;
 }
 
 std::string Filesystem::Impl::GetBufferDirectory() const {
