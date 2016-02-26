@@ -18,6 +18,7 @@ class Filesystem::Impl {
     bool AboveQuota() const;
     bool Delete(const std::string& filename);
     std::string GetBufferDirectory() const;
+    std::string GetExistingFilepath(const std::string& filename) const;
     std::string GetFilepath(const std::string& filename) const;
     bool Move(const std::string& filepath_move_from, const std::string& filename_move_to);
 
@@ -68,6 +69,15 @@ std::string Filesystem::Impl::GetBufferDirectory() const {
     return buffer_path_.string();
 }
 
+std::string Filesystem::Impl::GetExistingFilepath(const std::string& filename) const {
+    const auto filepath = buffer_path_ / filename;
+    if (fs::exists(filepath)) {
+        return filepath.string();
+    }
+
+    return std::string();
+}
+
 std::string Filesystem::Impl::GetFilepath(const std::string& filename) const {
     return (buffer_path_ / filename).string();
 }
@@ -106,6 +116,10 @@ bool Filesystem::Delete(const std::string& filename) {
 
 std::string Filesystem::GetBufferDirectory() const {
     return impl_->GetBufferDirectory();
+}
+
+std::string Filesystem::GetExistingFilepath(const std::string& filename) const {
+    return impl_->GetExistingFilepath(filename);
 }
 
 std::string Filesystem::GetFilepath(const std::string& filename) const {
