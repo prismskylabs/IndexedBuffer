@@ -115,7 +115,15 @@ std::string Buffer::Impl::GetFilepath(const std::chrono::system_clock::time_poin
         return hash;
     }
 
-    return filesystem_.GetFilepath(hash);
+    const auto filepath = filesystem_.GetExistingFilepath(hash);
+    if (filepath.empty()) {
+        try {
+            database_.Delete(hash);
+        } catch (const DatabaseException& e) {
+        }
+    }
+
+    return filepath;
 }
 
 bool Buffer::Impl::Full() const {
