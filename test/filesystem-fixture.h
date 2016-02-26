@@ -18,7 +18,7 @@ class FilesystemFixture : public ::testing::Test {
     }
 
     int numberOfFiles() {
-        fs::directory_iterator begin(buffer_path_), end;
+        fs::recursive_directory_iterator begin(buffer_path_), end;
         return std::count_if(begin, end, [](const fs::directory_entry& f) {
             return !(fs::is_directory(f.path()) ||
                      f.path().filename().string().substr(0, 18) ==
