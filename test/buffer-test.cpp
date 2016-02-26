@@ -621,6 +621,36 @@ TEST_F(BufferFixture, PushSingleFilesystemCheckTest) {
     EXPECT_EQ(1, numberOfFiles());
 }
 
+TEST_F(BufferFixture, PushSimpleHashTest) {
+    prism::indexed::Buffer buffer{std::string{}, 2.0, []() { return std::string("file"); }};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(fs::exists(buffer_path_ / "file"));
+}
+
+TEST_F(BufferFixture, PushHashWithExtensionTest) {
+    prism::indexed::Buffer buffer{std::string{}, 2.0, []() { return std::string("file.mp4"); }};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(fs::exists(buffer_path_ / "file.mp4"));
+}
+
+TEST_F(BufferFixture, PushNestedHashTest) {
+    prism::indexed::Buffer buffer{std::string{}, 2.0, []() { return std::string("nested/file"); }};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(fs::exists(buffer_path_ / "nested" / "file"));
+}
+
 TEST_F(BufferFixture, PushNothingFilesystemCheckTest) {
     prism::indexed::Buffer buffer;
     EXPECT_EQ(0, numberOfFiles());
