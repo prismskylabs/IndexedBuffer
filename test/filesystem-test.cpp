@@ -154,6 +154,22 @@ TEST_F(FilesystemFixture, GetBufferDirectoryTest) {
     EXPECT_EQ(fs::path{buffer_directory}, buffer_path_);
 }
 
+TEST_F(FilesystemFixture, GetExistingFilepathForNonExistingFileTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    auto path_string = filesystem.GetExistingFilepath("non_existing_file");
+    EXPECT_TRUE(path_string.empty());
+}
+
+TEST_F(FilesystemFixture, GetExistingFilepathForExistingFileTest) {
+    prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
+    {
+        std::ofstream out_stream{(buffer_path_ / "existing_file").native()};
+        out_stream << "hello world";
+    }
+    auto path_string = filesystem.GetExistingFilepath("existing_file");
+    EXPECT_EQ(fs::path{path_string}, buffer_path_ / "existing_file");
+}
+
 TEST_F(FilesystemFixture, GetFilepathTest) {
     prism::indexed::Filesystem filesystem{"prism_indexed_buffer"};
     auto path_string = filesystem.GetFilepath("file");
