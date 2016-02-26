@@ -85,6 +85,13 @@ std::string Filesystem::Impl::GetFilepath(const std::string& filename) const {
 bool Filesystem::Impl::Move(const std::string& filepath_move_from,
                             const std::string& filename_move_to) {
     auto filepath = buffer_path_ / filename_move_to;
+    if (fs::is_directory(filepath)) {
+        return false;
+    }
+    const auto parent_directory = filepath.parent_path();
+    if (!fs::exists(parent_directory)) {
+        fs::create_directories(parent_directory);
+    }
     if (fs::exists(filepath_move_from) && !fs::exists(filepath)) {
         try {
             fs::rename(filepath_move_from, filepath);
