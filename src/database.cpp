@@ -107,8 +107,12 @@ void Database::Impl::Insert(const unsigned long long& time_value, const unsigned
         return;
     }
 
-    if (!fs::portable_file_name(hash)) {
-        return;
+    const auto hash_path = fs::path(hash);
+
+    for (const auto& hash_part : hash_path) {
+        if (!fs::portable_file_name(hash_part.string())) {
+            return;
+        }
     }
 
     std::stringstream stream;
