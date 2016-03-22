@@ -64,7 +64,14 @@ bool Filesystem::Impl::Delete(const std::string& filename) {
         return false;
     }
 
+    if (!fs::exists(filepath)) {
+        return false;
+    }
+
     auto success = fs::remove(filepath);
+    if (!success) {
+        return false;
+    }
 
     auto parent_directory = fs::canonical(filepath.parent_path());
     const auto canonical_buffer_path = fs::canonical(buffer_path_);
