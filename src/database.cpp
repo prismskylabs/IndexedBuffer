@@ -199,6 +199,7 @@ void Database::Impl::createTable() {
 std::vector<Record> Database::Impl::execute(const std::string& sql_statement) {
     std::vector<Record> response;
     auto sqlite_database = openDatabase();
+    sqlite3_busy_timeout(sqlite_database.get(), 10000);
     char* error;
     int rc = sqlite3_exec(sqlite_database.get(), sql_statement.data(), &Database::Impl::callback,
                           &response, &error);
