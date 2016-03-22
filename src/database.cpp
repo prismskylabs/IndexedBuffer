@@ -203,7 +203,7 @@ std::vector<Record> Database::Impl::execute(const std::string& sql_statement) {
     int rc = sqlite3_exec(sqlite_database.get(), sql_statement.data(), &Database::Impl::callback,
                           &response, &error);
     if (rc != SQLITE_OK) {
-        auto error_string = std::string{error};
+        auto error_string = std::string{"["}.append(std::to_string(rc)).append("]: ").append(error);
         sqlite3_free(error);
         throw DatabaseException{error_string};
     }
