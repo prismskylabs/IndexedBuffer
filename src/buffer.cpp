@@ -35,8 +35,8 @@ class Buffer::Impl {
     bool Full() const;
     bool PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
-    bool SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
-                            const unsigned int& device);
+    bool SetLowPriority(const std::chrono::system_clock::time_point& time_point,
+                        const unsigned int& device);
     bool KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
     bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
@@ -140,8 +140,8 @@ bool Buffer::Impl::PreserveRecord(const std::chrono::system_clock::time_point& t
     return setKeep(time_point, device, PRESERVE_RECORD);
 } 
 
-bool Buffer::Impl::SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
-                                      const unsigned int& device) {
+bool Buffer::Impl::SetLowPriority(const std::chrono::system_clock::time_point& time_point,
+                                  const unsigned int& device) {
     return setKeep(time_point, device, DELETE_IF_FULL);
 }
 
@@ -183,7 +183,7 @@ bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
 
     if (filesystem_.Move(filepath, hash)) {
         try {
-            database_.Insert(utility::SnapToMinute(time_point), device, hash, size, DELETE_IF_FULL);
+            database_.Insert(utility::SnapToMinute(time_point), device, hash, size, ATTEMPT_KEEP);
         } catch (const DatabaseException& e) {
             filesystem_.Delete(hash);
         }
@@ -260,9 +260,9 @@ bool Buffer::PreserveRecord(const std::chrono::system_clock::time_point& time_po
     return impl_->PreserveRecord(time_point, device);
 }
 
-bool Buffer::SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
-                                const unsigned int& device) {
-    return impl_->SetDefaultPriority(time_point, device);
+bool Buffer::SetLowPriority(const std::chrono::system_clock::time_point& time_point,
+                            const unsigned int& device) {
+    return impl_->SetLowPriority(time_point, device);
 }
 
 bool Buffer::KeepIfPossible(const std::chrono::system_clock::time_point& time_point,

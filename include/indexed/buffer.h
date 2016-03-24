@@ -37,8 +37,8 @@ class Buffer {
     bool Full() const;
     bool PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
-    bool SetDefaultPriority(const std::chrono::system_clock::time_point& time_point,
-                            const unsigned int& device);
+    bool SetLowPriority(const std::chrono::system_clock::time_point& time_point,
+                        const unsigned int& device);
     bool KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
     bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
