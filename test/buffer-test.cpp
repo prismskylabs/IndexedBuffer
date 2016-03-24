@@ -547,6 +547,133 @@ TEST_F(BufferFixture, SetLowPriorityRemovedDatabaseTest) {
     EXPECT_FALSE(buffer.SetLowPriority(now, 1));
 }
 
+TEST_F(BufferFixture, BulkSetLowPriorityEmptyTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(
+            buffer.BulkSetLowPriority(std::vector<std::chrono::system_clock::time_point>{}, 1));
+}
+
+TEST_F(BufferFixture, BulkSetLowPrioritySingleTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(
+            buffer.BulkSetLowPriority(std::vector<std::chrono::system_clock::time_point>{now}, 1));
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(DELETE_IF_FULL, std::stoi(record["keep"]));
+    }
+    writeStagingFile(filename_, contents_);
+    EXPECT_TRUE(buffer.Push(now, 2, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(2, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(2, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+    }
+}
+
+TEST_F(BufferFixture, BulkSetLowPriorityManyTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+    std::vector<std::chrono::system_clock::time_point> time_points;
+    for (int i = 0; i < 24; ++i) {
+        for (int j = 0; j < 60; ++j) {
+            std::chrono::system_clock::time_point tp{day + std::chrono::hours(i) +
+                                                     std::chrono::minutes(j)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, 1, filepath_));
+            time_points.push_back(tp);
+        }
+    }
+    EXPECT_TRUE(buffer.BulkSetLowPriority(time_points, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    auto response_size = response.size();
+    EXPECT_EQ(1440, response_size);
+    for (int i = 0; i < response_size; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(DELETE_IF_FULL, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(BufferFixture, BulkSetLowPrioritySomeTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+    std::vector<std::chrono::system_clock::time_point> time_points;
+    for (int i = 0; i < 24; ++i) {
+        for (int j = 0; j < 60; ++j) {
+            std::chrono::system_clock::time_point tp{day + std::chrono::hours(i) +
+                                                     std::chrono::minutes(j)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, i % 2, filepath_));
+            time_points.push_back(tp);
+        }
+    }
+    EXPECT_TRUE(buffer.BulkSetLowPriority(time_points, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    auto response_size = response.size();
+    EXPECT_EQ(1440, response_size);
+    for (int i = 0; i < response_size; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_FALSE(record["hash"].empty());
+        if (std::stoi(record["device"]) == 1) {
+            EXPECT_EQ(DELETE_IF_FULL, std::stoi(record["keep"]));
+        } else {
+            EXPECT_EQ(ATTEMPT_KEEP, std::stoi(record["keep"]));
+        }
+    }
+}
+
 TEST_F(BufferFixture, KeepIfPossibleTest) {
     prism::indexed::Database database{db_string_};
     prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
@@ -610,6 +737,256 @@ TEST_F(BufferFixture, KeepIfPossibleRemovedDatabaseTest) {
     EXPECT_EQ(1, numberOfFiles());
     fs::remove(db_path_);
     EXPECT_FALSE(buffer.KeepIfPossible(now, 1));
+}
+
+TEST_F(BufferFixture, BulkKeepIfPossibleEmptyTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(
+            buffer.BulkKeepIfPossible(std::vector<std::chrono::system_clock::time_point>{}, 1));
+}
+
+TEST_F(BufferFixture, BulkKeepIfPossibleSingleTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(
+            buffer.BulkKeepIfPossible(std::vector<std::chrono::system_clock::time_point>{now}, 1));
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(ATTEMPT_KEEP, std::stoi(record["keep"]));
+    }
+    writeStagingFile(filename_, contents_);
+    EXPECT_TRUE(buffer.Push(now, 2, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(2, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(2, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+    }
+}
+
+TEST_F(BufferFixture, BulkKeepIfPossibleManyTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+    std::vector<std::chrono::system_clock::time_point> time_points;
+    for (int i = 0; i < 24; ++i) {
+        for (int j = 0; j < 60; ++j) {
+            std::chrono::system_clock::time_point tp{day + std::chrono::hours(i) +
+                                                     std::chrono::minutes(j)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, 1, filepath_));
+            time_points.push_back(tp);
+        }
+    }
+    EXPECT_TRUE(buffer.BulkKeepIfPossible(time_points, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    auto response_size = response.size();
+    EXPECT_EQ(1440, response_size);
+    for (int i = 0; i < response_size; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(ATTEMPT_KEEP, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(BufferFixture, BulkKeepIfPossibleSomeTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+    std::vector<std::chrono::system_clock::time_point> time_points;
+    for (int i = 0; i < 24; ++i) {
+        for (int j = 0; j < 60; ++j) {
+            std::chrono::system_clock::time_point tp{day + std::chrono::hours(i) +
+                                                     std::chrono::minutes(j)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, i % 2, filepath_));
+            time_points.push_back(tp);
+        }
+    }
+    EXPECT_TRUE(buffer.BulkKeepIfPossible(time_points, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    auto response_size = response.size();
+    EXPECT_EQ(1440, response_size);
+    for (int i = 0; i < response_size; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(ATTEMPT_KEEP, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(BufferFixture, BulkPreserveRecordEmptyTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(
+            buffer.BulkPreserveRecord(std::vector<std::chrono::system_clock::time_point>{}, 1));
+}
+
+TEST_F(BufferFixture, BulkPreserveRecordSingleTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    EXPECT_TRUE(buffer.Push(now, 1, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    EXPECT_TRUE(
+            buffer.BulkPreserveRecord(std::vector<std::chrono::system_clock::time_point>{now}, 1));
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(PRESERVE_RECORD, std::stoi(record["keep"]));
+    }
+    writeStagingFile(filename_, contents_);
+    EXPECT_FALSE(buffer.Push(now, 2, filepath_));
+    EXPECT_EQ(1, numberOfFiles());
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["id"]));
+        EXPECT_LE(1, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+    }
+}
+
+TEST_F(BufferFixture, BulkPreserveRecordManyTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+    std::vector<std::chrono::system_clock::time_point> time_points;
+    for (int i = 0; i < 24; ++i) {
+        for (int j = 0; j < 60; ++j) {
+            std::chrono::system_clock::time_point tp{day + std::chrono::hours(i) +
+                                                     std::chrono::minutes(j)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, 1, filepath_));
+            time_points.push_back(tp);
+        }
+    }
+    EXPECT_TRUE(buffer.BulkPreserveRecord(time_points, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    auto response_size = response.size();
+    EXPECT_EQ(1440, response_size);
+    for (int i = 0; i < response_size; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_FALSE(record["hash"].empty());
+        EXPECT_EQ(PRESERVE_RECORD, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(BufferFixture, BulkPreserveRecordSomeTest) {
+    prism::indexed::Database database{db_string_};
+    prism::indexed::Buffer buffer;
+    writeStagingFile(filename_, contents_);
+    EXPECT_EQ(0, numberOfFiles());
+    auto now = std::chrono::system_clock::now();
+    auto day_value =
+            std::chrono::duration_cast<std::chrono::hours>(now.time_since_epoch()).count() / 24;
+    std::chrono::system_clock::time_point day{std::chrono::hours(day_value * 24)};
+    std::vector<std::chrono::system_clock::time_point> time_points;
+    for (int i = 0; i < 24; ++i) {
+        for (int j = 0; j < 60; ++j) {
+            std::chrono::system_clock::time_point tp{day + std::chrono::hours(i) +
+                                                     std::chrono::minutes(j)};
+            writeStagingFile(filename_, contents_);
+            EXPECT_TRUE(buffer.Push(tp, i % 2, filepath_));
+            time_points.push_back(tp);
+        }
+    }
+    EXPECT_TRUE(buffer.BulkPreserveRecord(time_points, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    auto response_size = response.size();
+    EXPECT_EQ(1440, response_size);
+    for (int i = 0; i < response_size; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_FALSE(record["hash"].empty());
+        if (std::stoi(record["device"]) == 1) {
+            EXPECT_EQ(PRESERVE_RECORD, std::stoi(record["keep"]));
+        } else {
+            EXPECT_EQ(ATTEMPT_KEEP, std::stoi(record["keep"]));
+        }
+    }
 }
 
 TEST_F(BufferFixture, PushSingleFilesystemCheckTest) {
