@@ -138,7 +138,7 @@ bool Buffer::Impl::Full() const {
 bool Buffer::Impl::PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                                   const unsigned int& device) {
     return setKeep(time_point, device, PRESERVE_RECORD);
-} 
+}
 
 bool Buffer::Impl::SetLowPriority(const std::chrono::system_clock::time_point& time_point,
                                   const unsigned int& device) {
