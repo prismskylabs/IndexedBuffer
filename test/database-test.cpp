@@ -403,7 +403,7 @@ TEST_F(DatabaseFixture, InsertCoupleUniquenessViolationTest) {
         thrown = true;
         EXPECT_EQ(
                 std::string{
-                        "UNIQUE constraint failed: prism_indexed_data.time_value, "
+                        "[19]: UNIQUE constraint failed: prism_indexed_data.time_value, "
                         "prism_indexed_data.device"},
                 e.what());
     }
@@ -830,7 +830,7 @@ TEST_F(DatabaseFixture, DeletedDBThrowInsertTest) {
         database.Insert(1, 1, "hash", 5, 0);
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
-        EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
+        EXPECT_EQ(std::string{"[1]: no such table: prism_indexed_data"},
                   std::string{e.what()});
     }
     EXPECT_TRUE(thrown);
@@ -845,7 +845,7 @@ TEST_F(DatabaseFixture, DeletedDBThrowFindHashTest) {
         database.FindHash(1, 1);
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
-        EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
+        EXPECT_EQ(std::string{"[1]: no such table: prism_indexed_data"},
                   std::string{e.what()});
     }
     EXPECT_TRUE(thrown);
@@ -860,7 +860,7 @@ TEST_F(DatabaseFixture, DeletedDBThrowDeleteTest) {
         database.Delete("hash");
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
-        EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
+        EXPECT_EQ(std::string{"[1]: no such table: prism_indexed_data"},
                   std::string{e.what()});
     }
     EXPECT_TRUE(thrown);
@@ -875,7 +875,7 @@ TEST_F(DatabaseFixture, DeletedDBThrowSetKeepTest) {
         EXPECT_TRUE(database.SetKeep(1, 1, 1));
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
-        EXPECT_EQ(std::string{"no such table: prism_indexed_data"},
+        EXPECT_EQ(std::string{"[1]: no such table: prism_indexed_data"},
                   std::string{e.what()});
     }
     EXPECT_TRUE(thrown);
