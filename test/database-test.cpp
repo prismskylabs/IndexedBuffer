@@ -734,6 +734,93 @@ TEST_F(DatabaseFixture, SetKeepManyTest) {
     }
 }
 
+TEST_F(DatabaseFixture, BulkSetKeepEmptyTest) {
+    prism::indexed::Database database{db_string_};
+    auto number_of_records = 100;
+    for (int i = 0; i < number_of_records; ++i) {
+        database.Insert(i, 1, std::to_string(i * i), i * 2, i);
+    }
+    EXPECT_TRUE(database.BulkSetKeep(std::vector<unsigned long long>{}, 1, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(number_of_records, response.size());
+    for (int i = 0; i < number_of_records; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(i + 1, std::stoi(record["id"]));
+        EXPECT_EQ(i, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_EQ(std::to_string(i * i), record["hash"]);
+        EXPECT_EQ(i * 2, std::stoi(record["size"]));
+        EXPECT_EQ(i, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(DatabaseFixture, BulkSetKeepSingleTest) {
+    prism::indexed::Database database{db_string_};
+    auto number_of_records = 100;
+    for (int i = 0; i < number_of_records; ++i) {
+        database.Insert(i, 1, std::to_string(i * i), i * 2, i);
+    }
+    EXPECT_TRUE(database.BulkSetKeep(std::vector<unsigned long long>{0}, 1, 1));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(number_of_records, response.size());
+    {
+        auto& record = response[0];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(1, std::stoi(record["id"]));
+        EXPECT_EQ(0, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_EQ(std::to_string(0), record["hash"]);
+        EXPECT_EQ(0, std::stoi(record["size"]));
+        EXPECT_EQ(1, std::stoi(record["keep"]));
+    }
+    for (int i = 1; i < number_of_records; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(i + 1, std::stoi(record["id"]));
+        EXPECT_EQ(i, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_EQ(std::to_string(i * i), record["hash"]);
+        EXPECT_EQ(i * 2, std::stoi(record["size"]));
+        EXPECT_EQ(i, std::stoi(record["keep"]));
+    }
+}
+
+TEST_F(DatabaseFixture, BulkSetKeepManyTest) {
+    prism::indexed::Database database{db_string_};
+    auto number_of_records = 100;
+    std::vector<unsigned long long> minutes_to_update;
+    for (int i = 0; i < number_of_records; ++i) {
+        database.Insert(i, 1, std::to_string(i * i), i * 2, i);
+        minutes_to_update.push_back(i);
+    }
+    EXPECT_TRUE(database.BulkSetKeep(minutes_to_update, 1, 10000));
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(number_of_records, response.size());
+    for (int i = 0; i < number_of_records; ++i) {
+        auto& record = response[i];
+        EXPECT_EQ(6, record.size());
+        EXPECT_EQ(i + 1, std::stoi(record["id"]));
+        EXPECT_EQ(i, std::stoi(record["time_value"]));
+        EXPECT_EQ(1, std::stoi(record["device"]));
+        EXPECT_EQ(std::to_string(i * i), record["hash"]);
+        EXPECT_EQ(i * 2, std::stoi(record["size"]));
+        EXPECT_EQ(10000, std::stoi(record["keep"]));
+    }
+}
+
 TEST_F(DatabaseFixture, LowestDeletableNoneTest) {
     prism::indexed::Database database{db_string_};
     std::stringstream stream;
