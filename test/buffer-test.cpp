@@ -482,7 +482,7 @@ TEST_F(BufferFixture, PreserveRecordRemovedDatabaseTest) {
     EXPECT_FALSE(buffer.PreserveRecord(now, 1));
 }
 
-TEST_F(BufferFixture, SetDefaultPriorityTest) {
+TEST_F(BufferFixture, SetLowPriorityTest) {
     prism::indexed::Database database{db_string_};
     prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
@@ -490,17 +490,17 @@ TEST_F(BufferFixture, SetDefaultPriorityTest) {
     auto now = std::chrono::system_clock::now();
     EXPECT_TRUE(buffer.Push(now, 1, filepath_));
     EXPECT_EQ(1, numberOfFiles());
-    EXPECT_TRUE(buffer.SetDefaultPriority(now, 1));
+    EXPECT_TRUE(buffer.SetLowPriority(now, 1));
 }
 
-TEST_F(BufferFixture, SetDefaultPriorityWorksTest) {
+TEST_F(BufferFixture, SetLowPriorityWorksTest) {
     prism::indexed::Database database{db_string_};
     prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
     EXPECT_EQ(0, numberOfFiles());
     auto now = std::chrono::system_clock::now();
     EXPECT_TRUE(buffer.Push(now, 1, filepath_));
-    EXPECT_TRUE(buffer.SetDefaultPriority(now, 1));
+    EXPECT_TRUE(buffer.SetLowPriority(now, 1));
     {
         std::stringstream stream;
         stream << "SELECT * FROM "
@@ -535,7 +535,7 @@ TEST_F(BufferFixture, SetDefaultPriorityWorksTest) {
     }
 }
 
-TEST_F(BufferFixture, SetDefaultPriorityRemovedDatabaseTest) {
+TEST_F(BufferFixture, SetLowPriorityRemovedDatabaseTest) {
     prism::indexed::Database database{db_string_};
     prism::indexed::Buffer buffer{std::string{}, (fs::file_size(db_path_) + 5) / (1024 * 1024 * 1024.)};
     writeStagingFile(filename_, contents_);
@@ -544,7 +544,7 @@ TEST_F(BufferFixture, SetDefaultPriorityRemovedDatabaseTest) {
     EXPECT_TRUE(buffer.Push(now, 1, filepath_));
     EXPECT_EQ(1, numberOfFiles());
     fs::remove(db_path_);
-    EXPECT_FALSE(buffer.SetDefaultPriority(now, 1));
+    EXPECT_FALSE(buffer.SetLowPriority(now, 1));
 }
 
 TEST_F(BufferFixture, KeepIfPossibleTest) {
