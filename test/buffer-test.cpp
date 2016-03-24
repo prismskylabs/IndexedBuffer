@@ -1053,7 +1053,7 @@ TEST_F(BufferFixture, PushSingleDatabaseCheckTest) {
     EXPECT_LE(1, std::stoi(record["time_value"]));
     EXPECT_EQ(1, std::stoi(record["device"]));
     EXPECT_FALSE(record["hash"].empty());
-    EXPECT_EQ(DELETE_IF_FULL, std::stoi(record["keep"]));
+    EXPECT_EQ(ATTEMPT_KEEP, std::stoi(record["keep"]));
 }
 
 TEST_F(BufferFixture, PushNothingDatabaseCheckTest) {
