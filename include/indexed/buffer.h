@@ -41,6 +41,12 @@ class Buffer {
                         const unsigned int& device);
     bool KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
+    bool BulkPreserveRecord(const std::vector<std::chrono::system_clock::time_point>& time_points,
+                            const unsigned int& device);
+    bool BulkSetLowPriority(const std::vector<std::chrono::system_clock::time_point>& time_points,
+                            const unsigned int& device);
+    bool BulkKeepIfPossible(const std::vector<std::chrono::system_clock::time_point>& time_points,
+                            const unsigned int& device);
     bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
               const std::string& filepath);
 

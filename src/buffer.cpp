@@ -8,6 +8,7 @@
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 
@@ -39,6 +40,12 @@ class Buffer::Impl {
                         const unsigned int& device);
     bool KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
+    bool BulkPreserveRecord(const std::vector<std::chrono::system_clock::time_point>& time_points,
+                            const unsigned int& device);
+    bool BulkSetLowPriority(const std::vector<std::chrono::system_clock::time_point>& time_points,
+                            const unsigned int& device);
+    bool BulkKeepIfPossible(const std::vector<std::chrono::system_clock::time_point>& time_points,
+                            const unsigned int& device);
     bool Push(const std::chrono::system_clock::time_point& time_point, const unsigned int& device,
               const std::string& filepath);
     static std::string MakeHash();
@@ -46,6 +53,8 @@ class Buffer::Impl {
   private:
     bool setKeep(const std::chrono::system_clock::time_point& time_point,
                  const unsigned int& device, const unsigned int& keep);
+    bool bulkSetKeep(const std::vector<std::chrono::system_clock::time_point>& time_points,
+                     const unsigned int& device, const unsigned int& keep);
 
     Filesystem filesystem_;
     Database database_;
@@ -150,6 +159,24 @@ bool Buffer::Impl::KeepIfPossible(const std::chrono::system_clock::time_point& t
     return setKeep(time_point, device, ATTEMPT_KEEP);
 }
 
+bool Buffer::Impl::BulkPreserveRecord(
+        const std::vector<std::chrono::system_clock::time_point>& time_points,
+        const unsigned int& device) {
+    return bulkSetKeep(time_points, device, PRESERVE_RECORD);
+}
+
+bool Buffer::Impl::BulkSetLowPriority(
+        const std::vector<std::chrono::system_clock::time_point>& time_points,
+        const unsigned int& device) {
+    return bulkSetKeep(time_points, device, DELETE_IF_FULL);
+}
+
+bool Buffer::Impl::BulkKeepIfPossible(
+        const std::vector<std::chrono::system_clock::time_point>& time_points,
+        const unsigned int& device) {
+    return bulkSetKeep(time_points, device, ATTEMPT_KEEP);
+}
+
 bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device, const std::string& filepath) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -218,6 +245,24 @@ bool Buffer::Impl::setKeep(const std::chrono::system_clock::time_point& time_poi
     return false;
 }
 
+bool Buffer::Impl::bulkSetKeep(
+        const std::vector<std::chrono::system_clock::time_point>& time_points,
+        const unsigned int& device, const unsigned int& keep) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    std::vector<unsigned long long> minutes;
+    for (const auto& time_point : time_points) {
+        minutes.emplace_back(utility::SnapToMinute(time_point));
+    }
+
+    try {
+        return database_.BulkSetKeep(minutes, device, keep);
+    } catch (const DatabaseException& e) {
+        return false;
+    }
+    return false;
+}
+
 // Bridge
 
 Buffer::Buffer() : Buffer(std::string{}, 2.0) {}
@@ -268,6 +313,24 @@ bool Buffer::SetLowPriority(const std::chrono::system_clock::time_point& time_po
 bool Buffer::KeepIfPossible(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device) {
     return impl_->KeepIfPossible(time_point, device);
+}
+
+bool Buffer::BulkPreserveRecord(
+        const std::vector<std::chrono::system_clock::time_point>& time_points,
+        const unsigned int& device) {
+    return impl_->BulkPreserveRecord(time_points, device);
+}
+
+bool Buffer::BulkSetLowPriority(
+        const std::vector<std::chrono::system_clock::time_point>& time_points,
+        const unsigned int& device) {
+    return impl_->BulkSetLowPriority(time_points, device);
+}
+
+bool Buffer::BulkKeepIfPossible(
+        const std::vector<std::chrono::system_clock::time_point>& time_points,
+        const unsigned int& device) {
+    return impl_->BulkKeepIfPossible(time_points, device);
 }
 
 bool Buffer::Push(const std::chrono::system_clock::time_point& time_point,
