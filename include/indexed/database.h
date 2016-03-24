@@ -30,6 +30,8 @@ class Database {
     std::vector<Record> SelectAll();
     bool SetKeep(const unsigned long long& time_value, const unsigned int& device,
                  const unsigned int& keep);
+    bool BulkSetKeep(const std::vector<unsigned long long>& time_values, const unsigned int& device,
+                     const unsigned int& keep);
 
   private:
     class Impl;

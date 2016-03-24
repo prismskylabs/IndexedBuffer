@@ -27,6 +27,8 @@ class Database::Impl {
     std::vector<Record> SelectAll();
     bool SetKeep(const unsigned long long& time_value, const unsigned int& device,
                  const unsigned int& keep);
+    bool BulkSetKeep(const std::vector<unsigned long long>& time_values, const unsigned int& device,
+                     const unsigned int& keep);
 
   private:
     using DatabaseHandle = std::unique_ptr<sqlite3, std::function<int(sqlite3*)>>;
@@ -156,6 +158,40 @@ bool Database::Impl::SetKeep(const unsigned long long& time_value, const unsigne
     return !execute(stream.str()).empty();
 }
 
+
+bool Database::Impl::BulkSetKeep(const std::vector<unsigned long long>& time_values,
+                                 const unsigned int& device, const unsigned int& keep) {
+    if (time_values.empty()) {
+        return true;
+    }
+
+    // Produce set of time values to query
+    std::stringstream time_values_stream;
+    time_values_stream << "(";
+    auto it = time_values.cbegin();
+    for (; it != time_values.end() - 1; ++it) {
+        time_values_stream << *it << ",";
+    }
+    time_values_stream << *it;
+    time_values_stream << ")";
+
+    auto time_values_string = time_values_stream.str();
+
+    std::stringstream stream;
+    stream << "UPDATE "
+           << table_name_
+           << " SET keep="
+           << keep
+           << " WHERE time_value IN " << time_values_string
+           << " AND device=" << device
+           << "; SELECT * FROM "
+           << table_name_
+           << " WHERE time_value IN " << time_values_string
+           << " AND device=" << device
+           << ";";
+
+    return !execute(stream.str()).empty();
+}
 int Database::Impl::callback(void* response_ptr, int num_values, char** values, char** names) {
     auto response = (std::vector<Record>*) response_ptr;
     auto record = Record();
@@ -252,6 +288,11 @@ std::vector<Record> Database::SelectAll() {
 bool Database::SetKeep(const unsigned long long& time_value, const unsigned int& device,
                        const unsigned int& keep) {
     return impl_->SetKeep(time_value, device, keep);
+}
+
+bool Database::BulkSetKeep(const std::vector<unsigned long long>& time_values,
+                           const unsigned int& device, const unsigned int& keep) {
+    return impl_->BulkSetKeep(time_values, device, keep);
 }
 
 } // namespace indexed
