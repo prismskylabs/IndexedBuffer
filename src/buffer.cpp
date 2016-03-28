@@ -100,18 +100,16 @@ std::string Buffer::Impl::GetBufferDirectory() const {
 
 std::map<Device, ItemMap> Buffer::Impl::GetCatalog() {
     std::map<Device, ItemMap> catalog;
-    try {
-        auto records = database_.SelectAll();
-        for (auto& record : records) {
-            Device device = std::stoi(record["device"]);
-            auto time_value = std::stoull(record["time_value"]);
-            auto hour_bucket =
-                    std::chrono::system_clock::time_point(std::chrono::hours(time_value / 60));
-            catalog[device][hour_bucket].emplace_back(
-                    Item{static_cast<unsigned int>(time_value % 60)});
-        }
-    } catch (const DatabaseException& e) {
+    auto records = database_.SelectAll();
+    for (auto& record : records) {
+        Device device = std::stoi(record["device"]);
+        auto time_value = std::stoull(record["time_value"]);
+        auto hour_bucket =
+                std::chrono::system_clock::time_point(std::chrono::hours(time_value / 60));
+        catalog[device][hour_bucket].emplace_back(
+                Item{static_cast<unsigned int>(time_value % 60)});
     }
+
     return catalog;
 }
 
