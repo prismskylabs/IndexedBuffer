@@ -43,11 +43,20 @@ Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& b
 }
 
 bool Filesystem::Impl::AboveQuota() const {
+    uintmax_t size = 0;
+    const auto end = fs::recursive_directory_iterator();
+    for (fs::recursive_directory_iterator it(buffer_path_); it != end; ++it) {
+        try {
+            if (!fs::is_directory(*it)) {
+                size += fs::file_size(*it);
+            }
+        } catch (const std::exception& e) {
+        }
+    }
     auto space_info = fs::space(buffer_path_);
-    auto space_used = space_info.capacity - space_info.available;
     auto fraction_space_available = space_info.available / static_cast<double>(space_info.capacity);
 
-    return space_used > byte_quota_ || fraction_space_available < 0.001;
+    return size > byte_quota_ || fraction_space_available < 0.001;
 }
 
 bool Filesystem::Impl::Delete(const std::string& filename) {
