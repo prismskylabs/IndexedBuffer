@@ -56,7 +56,7 @@ bool Filesystem::Impl::AboveQuota() const {
     auto space_info = fs::space(buffer_path_);
     auto fraction_space_available = space_info.available / static_cast<double>(space_info.capacity);
 
-    return size > byte_quota_ || fraction_space_available < 0.001;
+    return size > byte_quota_ || fraction_space_available < 0.1;
 }
 
 bool Filesystem::Impl::Delete(const std::string& filename) {
