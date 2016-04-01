@@ -49,7 +49,7 @@ TEST_F(DatabaseFixture, ConstructThrowTest) {
         prism::indexed::Database database{(fs::temp_directory_path() / "").string()};
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
-        EXPECT_EQ(std::string{"unable to open database file"}, std::string{e.what()});
+        EXPECT_EQ(std::string{"[14]: unable to open database file"}, std::string{e.what()});
     }
     EXPECT_TRUE(thrown);
 }
@@ -60,7 +60,7 @@ TEST_F(DatabaseFixture, ConstructCurrentThrowTest) {
         prism::indexed::Database database{(fs::temp_directory_path() / ".").string()};
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
-        EXPECT_EQ(std::string{"unable to open database file"}, std::string{e.what()});
+        EXPECT_EQ(std::string{"[14]: unable to open database file"}, std::string{e.what()});
     }
     EXPECT_TRUE(thrown);
 }
@@ -71,7 +71,7 @@ TEST_F(DatabaseFixture, ConstructParentThrowTest) {
         prism::indexed::Database database{(fs::temp_directory_path() / "..").string()};
     } catch (const prism::indexed::DatabaseException& e) {
         thrown = true;
-        EXPECT_EQ(std::string{"unable to open database file"}, std::string{e.what()});
+        EXPECT_EQ(std::string{"[14]: unable to open database file"}, std::string{e.what()});
     }
     EXPECT_TRUE(thrown);
 }
