@@ -250,8 +250,13 @@ std::vector<Record> Database::Impl::execute(const std::string& sql_statement) {
 
 Database::Impl::DatabaseHandle Database::Impl::openDatabase() {
     sqlite3* sqlite_db;
-    if (sqlite3_open(table_path_.data(), &sqlite_db) != SQLITE_OK) {
-        throw DatabaseException{sqlite3_errmsg(sqlite_db)};
+    int rc = sqlite3_open(table_path_.data(), &sqlite_db);
+    if (rc != SQLITE_OK) {
+        auto error_string = std::string{"["}
+                                    .append(std::to_string(rc))
+                                    .append("]: ")
+                                    .append(sqlite3_errmsg(sqlite_db));
+        throw DatabaseException{error_string};
     }
     return DatabaseHandle(sqlite_db, sqlite3_close);
 }
