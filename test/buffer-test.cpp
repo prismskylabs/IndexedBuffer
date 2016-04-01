@@ -6,6 +6,7 @@
 
 #include "buffer-fixture.h"
 #include "indexed/buffer.h"
+#include "indexed/database.h"
 
 
 namespace fs = ::boost::filesystem;
@@ -227,8 +228,14 @@ TEST_F(BufferFixture, GetCatalogEmptyTest) {
 TEST_F(BufferFixture, GetCatalogRemovedDatabaseTest) {
     prism::indexed::Buffer buffer;
     fs::remove(db_path_);
-    auto catalog = buffer.GetCatalog();
-    EXPECT_EQ(0, catalog.size());
+    bool thrown = false;
+    try {
+        auto catalog = buffer.GetCatalog();
+    } catch (const prism::indexed::DatabaseException& e) {
+        thrown = true;
+        EXPECT_EQ(std::string{"[1]: no such table: prism_indexed_data"}, std::string{e.what()});
+    }
+    EXPECT_TRUE(thrown);
 }
 
 TEST_F(BufferFixture, GetCatalogFullHourTest) {
