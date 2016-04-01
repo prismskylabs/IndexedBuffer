@@ -45,12 +45,20 @@ Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& b
 bool Filesystem::Impl::AboveQuota() const {
     uintmax_t size = 0;
     const auto end = fs::recursive_directory_iterator();
-    for (fs::recursive_directory_iterator it(buffer_path_); it != end; ++it) {
+    for (fs::recursive_directory_iterator it(buffer_path_); it != end;) {
         try {
             if (!fs::is_directory(*it)) {
                 size += fs::file_size(*it);
             }
         } catch (const std::exception& e) {
+        }
+
+        // Increment to the next iterator
+        try {
+            ++it;
+        } catch (const std::exception& e) {
+            it.no_push();
+            ++it;
         }
     }
     auto space_info = fs::space(buffer_path_);
