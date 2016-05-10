@@ -946,7 +946,7 @@ TEST_F(DatabaseFixture, LowestDeletableNoneTest) {
            << ";";
     auto response = execute(stream.str());
     EXPECT_EQ(0, response.size());
-    EXPECT_TRUE(database.GetLowestDeletable().empty());
+    EXPECT_TRUE(database.GetLowestDeletableHashes().empty());
 }
 
 TEST_F(DatabaseFixture, LowestDeletableSingleTest) {
@@ -958,7 +958,7 @@ TEST_F(DatabaseFixture, LowestDeletableSingleTest) {
            << ";";
     auto response = execute(stream.str());
     EXPECT_EQ(1, response.size());
-    EXPECT_EQ(std::string{"hash"}, database.GetLowestDeletable());
+    EXPECT_EQ(std::string{"hash"}, database.GetLowestDeletableHashes()[0]);
 }
 
 TEST_F(DatabaseFixture, LowestDeletableCoupleTest) {
@@ -971,7 +971,9 @@ TEST_F(DatabaseFixture, LowestDeletableCoupleTest) {
            << ";";
     auto response = execute(stream.str());
     EXPECT_EQ(2, response.size());
-    EXPECT_EQ(std::string{"hash"}, database.GetLowestDeletable());
+    auto hashes = database.GetLowestDeletableHashes();
+    EXPECT_EQ(std::string{"hash"}, hashes[0]);
+    EXPECT_EQ(std::string{"hashbrowns"}, hashes[1]);
 }
 
 TEST_F(DatabaseFixture, LowestDeletableCoupleSwitchedTest) {
@@ -984,7 +986,9 @@ TEST_F(DatabaseFixture, LowestDeletableCoupleSwitchedTest) {
            << ";";
     auto response = execute(stream.str());
     EXPECT_EQ(2, response.size());
-    EXPECT_EQ(std::string{"hashbrowns"}, database.GetLowestDeletable());
+    auto hashes = database.GetLowestDeletableHashes();
+    EXPECT_EQ(std::string{"hash"}, hashes[1]);
+    EXPECT_EQ(std::string{"hashbrowns"}, hashes[0]);
 }
 
 TEST_F(DatabaseFixture, LowestDeletableCoupleEqualTest) {
@@ -997,7 +1001,9 @@ TEST_F(DatabaseFixture, LowestDeletableCoupleEqualTest) {
            << ";";
     auto response = execute(stream.str());
     EXPECT_EQ(2, response.size());
-    EXPECT_EQ(std::string{"hash"}, database.GetLowestDeletable());
+    auto hashes = database.GetLowestDeletableHashes();
+    EXPECT_EQ(std::string{"hash"}, hashes[0]);
+    EXPECT_EQ(std::string{"hashbrowns"}, hashes[1]);
 }
 
 TEST_F(DatabaseFixture, LowestDeletableCoupleEqualSwitchedTest) {
@@ -1010,7 +1016,9 @@ TEST_F(DatabaseFixture, LowestDeletableCoupleEqualSwitchedTest) {
            << ";";
     auto response = execute(stream.str());
     EXPECT_EQ(2, response.size());
-    EXPECT_EQ(std::string{"hashbrowns"}, database.GetLowestDeletable());
+    auto hashes = database.GetLowestDeletableHashes();
+    EXPECT_EQ(std::string{"hash"}, hashes[1]);
+    EXPECT_EQ(std::string{"hashbrowns"}, hashes[0]);
 }
 
 TEST_F(DatabaseFixture, LowestDeletableTooHighTest) {
@@ -1022,7 +1030,7 @@ TEST_F(DatabaseFixture, LowestDeletableTooHighTest) {
            << ";";
     auto response = execute(stream.str());
     EXPECT_EQ(1, response.size());
-    EXPECT_TRUE(database.GetLowestDeletable().empty());
+    EXPECT_TRUE(database.GetLowestDeletableHashes().empty());
 }
 
 TEST_F(DatabaseFixture, DeletedDBThrowInsertTest) {
