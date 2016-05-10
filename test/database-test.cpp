@@ -245,6 +245,123 @@ TEST_F(DatabaseFixture, DeleteManyTest) {
     }
 }
 
+TEST_F(DatabaseFixture, BulkDeleteNullTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "hash", 5, 0);
+    { 
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+    }
+    std::vector<std::string> hashes_to_delete;
+    hashes_to_delete.emplace_back("");
+    database.BulkDelete(hashes_to_delete);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(1, response.size());
+}
+
+TEST_F(DatabaseFixture, BulkDeleteBadHashTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "hash", 5, 0);
+    { 
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+    }
+    std::vector<std::string> hashes_to_delete;
+    hashes_to_delete.emplace_back("h");
+    database.BulkDelete(hashes_to_delete);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(1, response.size());
+}
+
+TEST_F(DatabaseFixture, BulkDeleteSingleTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "hash", 5, 0);
+    { 
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(1, response.size());
+    }
+    std::vector<std::string> hashes_to_delete;
+    hashes_to_delete.emplace_back("hash");
+    database.BulkDelete(hashes_to_delete);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
+TEST_F(DatabaseFixture, BulkDeleteCoupleTest) {
+    prism::indexed::Database database{db_string_};
+    database.Insert(1, 1, "hash", 5, 0);
+    database.Insert(2, 1, "hashbrowns", 10, 1);
+    { 
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(2, response.size());
+    }
+    std::vector<std::string> hashes_to_delete;
+    hashes_to_delete.emplace_back("hash");
+    hashes_to_delete.emplace_back("hashbrowns");
+    database.BulkDelete(hashes_to_delete);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
+TEST_F(DatabaseFixture, BulkDeleteManyTest) {
+    prism::indexed::Database database{db_string_};
+    auto number_of_records = 100;
+    for (int i = 0; i < number_of_records; ++i) {
+        database.Insert(i, 1, std::to_string(i * i), i * 2, i);
+    }
+    {
+        std::stringstream stream;
+        stream << "SELECT * FROM "
+               << table_name_
+               << ";";
+        auto response = execute(stream.str());
+        EXPECT_EQ(number_of_records, response.size());
+    }
+    std::vector<std::string> hashes_to_delete;
+    for (int i = 0; i < number_of_records; ++i) {
+        hashes_to_delete.emplace_back(std::to_string(i * i));
+    }
+    database.BulkDelete(hashes_to_delete);
+    std::stringstream stream;
+    stream << "SELECT * FROM "
+           << table_name_
+           << ";";
+    auto response = execute(stream.str());
+    EXPECT_EQ(0, response.size());
+}
+
 TEST_F(DatabaseFixture, FindHashEmptyTest) {
     prism::indexed::Database database{db_string_};
     EXPECT_TRUE(database.FindHash(1, 1).empty());
