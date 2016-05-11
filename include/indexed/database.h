@@ -23,6 +23,7 @@ class Database {
     ~Database();
 
     void Delete(const std::string& hash);
+    void BulkDelete(const std::vector<std::string>& hash);
     std::vector<std::string> GetLowestDeletableHashes();
     std::string FindHash(const unsigned long long& time_value, const unsigned int& device);
     void Insert(const unsigned long long& time_value, const unsigned int& device,
