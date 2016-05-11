@@ -20,7 +20,7 @@ class Database::Impl {
     Impl(const std::string& path);
 
     void Delete(const std::string& hash);
-    std::string GetLowestDeletable();
+    std::vector<std::string> GetLowestDeletableHashes();
     std::string FindHash(const unsigned long long& time_value, const unsigned int& device);
     void Insert(const unsigned long long& time_value, const unsigned int& device,
                 const std::string& hash, const unsigned long long& size, const unsigned int& keep);
@@ -65,22 +65,23 @@ void Database::Impl::Delete(const std::string& hash) {
     execute(stream.str());
 }
 
-std::string Database::Impl::GetLowestDeletable() {
+std::vector<std::string> Database::Impl::GetLowestDeletableHashes() {
     std::stringstream stream;
     stream << "SELECT hash FROM "
            << table_name_
            << " WHERE keep < " << PRESERVE_RECORD
-           << " ORDER BY keep ASC, time_value ASC LIMIT 1;";
+           << " ORDER BY keep ASC, time_value ASC;";
     auto response = execute(stream.str());
-    std::string hash;
+    std::vector<std::string> hashes;
     if (!response.empty()) {
-        auto& record = response[0];
-        if (!record.empty()) {
-            hash = record["hash"];
+        for (auto& record : response) {
+            if (!record.empty()) {
+                hashes.push_back(record["hash"]);
+            }
         }
     }
 
-    return hash;
+    return hashes;
 }
 
 std::string Database::Impl::FindHash(const unsigned long long& time_value,
@@ -272,8 +273,8 @@ void Database::Delete(const std::string& hash) {
     impl_->Delete(hash);
 }
 
-std::string Database::GetLowestDeletable() {
-    return impl_->GetLowestDeletable();
+std::vector<std::string> Database::GetLowestDeletableHashes() {
+    return impl_->GetLowestDeletableHashes();
 }
 
 std::string Database::FindHash(const unsigned long long& time_value, const unsigned int& device) {
