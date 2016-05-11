@@ -178,22 +178,31 @@ bool Buffer::Impl::BulkKeepIfPossible(
 bool Buffer::Impl::Push(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device, const std::string& filepath) {
     std::lock_guard<std::mutex> lock(mutex_);
-    while (filesystem_.AboveQuota()) {
-        std::string hash;
+    if (filesystem_.AboveQuota()) {
+        std::vector<std::string> hashes;
+        std::vector<std::string> deleted_hashes;
         try {
-            hash = database_.GetLowestDeletable();
+            hashes = database_.GetLowestDeletableHashes();
         } catch (const DatabaseException& e) {
             return false;
         }
 
-        if (hash.empty()) {
-            fs::remove(filepath);
-            return false;
+        for (const auto& hash : hashes) {
+            if (!filesystem_.AboveQuota()) {
+                break;
+            }
+
+            if (hash.empty()) {
+                fs::remove(filepath);
+                return false;
+            }
+
+            filesystem_.Delete(hash);
+            deleted_hashes.push_back(hash);
         }
 
-        filesystem_.Delete(hash);
         try {
-            database_.Delete(hash);
+            database_.BulkDelete(deleted_hashes);
         } catch (const DatabaseException& e) {
             return false;
         }
