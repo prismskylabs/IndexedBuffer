@@ -20,6 +20,7 @@ class Database::Impl {
     Impl(const std::string& path);
 
     void Delete(const std::string& hash);
+    void BulkDelete(const std::vector<std::string>& hashes);
     std::vector<std::string> GetLowestDeletableHashes();
     std::string FindHash(const unsigned long long& time_value, const unsigned int& device);
     void Insert(const unsigned long long& time_value, const unsigned int& device,
@@ -62,6 +63,32 @@ void Database::Impl::Delete(const std::string& hash) {
            << " WHERE hash='"
            << hash
            << "';";
+    execute(stream.str());
+}
+
+void Database::Impl::BulkDelete(const std::vector<std::string>& hashes) {
+    if (hashes.empty()) {
+        return;
+    }
+
+    // Produce set of hashes to delete
+    std::stringstream hashes_stream;
+    hashes_stream << "(";
+    auto it = hashes.cbegin();
+    for (; it != hashes.end() - 1; ++it) {
+        hashes_stream << "'" << *it << "',";
+    }
+    hashes_stream << "'" << *it << "'";
+    hashes_stream << ")";
+
+    auto hashes_string = hashes_stream.str();
+
+    std::stringstream stream;
+    stream << "DELETE FROM "
+           << table_name_
+           << " WHERE hash IN " << hashes_string
+           << ";";
+
     execute(stream.str());
 }
 
@@ -271,6 +298,10 @@ Database::~Database() {}
 
 void Database::Delete(const std::string& hash) {
     impl_->Delete(hash);
+}
+
+void Database::BulkDelete(const std::vector<std::string>& hashes) {
+    impl_->BulkDelete(hashes);
 }
 
 std::vector<std::string> Database::GetLowestDeletableHashes() {
