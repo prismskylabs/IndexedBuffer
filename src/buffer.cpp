@@ -33,7 +33,7 @@ class Buffer::Impl {
     std::map<Device, ItemMap> GetCatalog();
     std::string GetFilepath(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device);
-    bool Full() const;
+    bool Full();
     bool PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
     bool SetLowPriority(const std::chrono::system_clock::time_point& time_point,
@@ -138,7 +138,7 @@ std::string Buffer::Impl::GetFilepath(const std::chrono::system_clock::time_poin
     return filepath;
 }
 
-bool Buffer::Impl::Full() const {
+bool Buffer::Impl::Full() {
     return filesystem_.AboveQuota();
 }
 
@@ -303,7 +303,7 @@ std::string Buffer::GetFilepath(const std::chrono::system_clock::time_point& tim
     return impl_->GetFilepath(time_point, device);
 }
 
-bool Buffer::Full() const {
+bool Buffer::Full() {
     return impl_->Full();
 }
 

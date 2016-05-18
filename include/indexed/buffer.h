@@ -34,7 +34,7 @@ class Buffer {
     std::map<Device, ItemMap> GetCatalog();
     std::string GetFilepath(const std::chrono::system_clock::time_point& time_point,
                             const unsigned int& device);
-    bool Full() const;
+    bool Full();
     bool PreserveRecord(const std::chrono::system_clock::time_point& time_point,
                         const unsigned int& device);
     bool SetLowPriority(const std::chrono::system_clock::time_point& time_point,

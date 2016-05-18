@@ -15,7 +15,7 @@ class Filesystem::Impl {
     Impl(const std::string& buffer_directory, const std::string& buffer_parent,
          const double& gigabyte_quota);
 
-    bool AboveQuota() const;
+    bool AboveQuota();
     bool Delete(const std::string& filename);
     std::string GetBufferDirectory() const;
     std::string GetExistingFilepath(const std::string& filename) const;
@@ -141,7 +141,7 @@ Filesystem::Filesystem(const std::string& buffer_directory, const std::string& b
 
 Filesystem::~Filesystem() {}
 
-bool Filesystem::AboveQuota() const {
+bool Filesystem::AboveQuota() {
     return impl_->AboveQuota();
 }
 
