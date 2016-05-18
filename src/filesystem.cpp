@@ -1,5 +1,6 @@
 #include "indexed/filesystem.h"
 
+#include <chrono>
 #include <string>
 
 #include <boost/filesystem.hpp>
@@ -23,8 +24,12 @@ class Filesystem::Impl {
     bool Move(const std::string& filepath_move_from, const std::string& filename_move_to);
 
   private:
+    uintmax_t getSize() const;
+
     fs::path buffer_path_;
     double byte_quota_;
+    uintmax_t size_;
+    std::chrono::system_clock::time_point last_size_update_;
 };
 
 Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& buffer_parent,
@@ -40,31 +45,20 @@ Filesystem::Impl::Impl(const std::string& buffer_directory, const std::string& b
         throw FilesystemException{"Filesystem must be initialized within a valid parent directory"};
     }
     fs::create_directory(buffer_path_);
+    size_ = getSize();
+    last_size_update_ = std::chrono::system_clock::now();
 }
 
-bool Filesystem::Impl::AboveQuota() const {
-    uintmax_t size = 0;
-    const auto end = fs::recursive_directory_iterator();
-    for (fs::recursive_directory_iterator it(buffer_path_); it != end;) {
-        try {
-            if (!fs::is_directory(*it)) {
-                size += fs::file_size(*it);
-            }
-        } catch (const std::exception& e) {
-        }
-
-        // Increment to the next iterator
-        try {
-            ++it;
-        } catch (const std::exception& e) {
-            it.no_push();
-            ++it;
-        }
+bool Filesystem::Impl::AboveQuota() {
+    auto now = std::chrono::system_clock::now();
+    if (now - last_size_update_ > std::chrono::minutes(10)) {
+        size_ = getSize();
+        last_size_update_ = now;
     }
     auto space_info = fs::space(buffer_path_);
     auto fraction_space_available = space_info.available / static_cast<double>(space_info.capacity);
 
-    return size > byte_quota_ || fraction_space_available < 0.1;
+    return size_ > byte_quota_ || fraction_space_available < 0.1;
 }
 
 bool Filesystem::Impl::Delete(const std::string& filename) {
@@ -78,10 +72,12 @@ bool Filesystem::Impl::Delete(const std::string& filename) {
         return false;
     }
 
+    auto removed_size = fs::file_size(filepath);
     auto success = fs::remove(filepath);
     if (!success) {
         return false;
     }
+    size_ -= removed_size;
 
     auto parent_directory = fs::canonical(filepath.parent_path());
     const auto canonical_buffer_path = fs::canonical(buffer_path_);
@@ -127,9 +123,33 @@ bool Filesystem::Impl::Move(const std::string& filepath_move_from,
             fs::copy_file(filepath_move_from, filepath);
             fs::remove(filepath_move_from);
         }
+        size_ += fs::file_size(filepath);
         return true;
     }
     return false;
+}
+
+uintmax_t Filesystem::Impl::getSize() const {
+    uintmax_t size = 0;
+    const auto end = fs::recursive_directory_iterator();
+    for (fs::recursive_directory_iterator it(buffer_path_); it != end;) {
+        try {
+            if (!fs::is_directory(*it)) {
+                size += fs::file_size(*it);
+            }
+        } catch (const std::exception& e) {
+        }
+
+        // Increment to the next iterator
+        try {
+            ++it;
+        } catch (const std::exception& e) {
+            it.no_push();
+            ++it;
+        }
+    }
+
+    return size;
 }
 
 
